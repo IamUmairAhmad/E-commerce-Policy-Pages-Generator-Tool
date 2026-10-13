@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Store Policy Pages Generator</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1c2230;--mut:#667085;--line:#dfe3ea;--acc:#2f5bea;--acc2:#e8eefe}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+header{padding:20px 28px;background:#fff;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:20px}
+header p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.wrap{display:grid;grid-template-columns:minmax(320px,470px) 1fr;gap:20px;padding:20px;max-width:1500px;margin:0 auto}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+label small{font-weight:400;color:var(--mut)}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px;background:#fff}
+input[readonly]{background:#f2f4f7;color:var(--mut)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--acc2);border-color:var(--acc)}
+textarea{min-height:60px;resize:vertical}
+.combo input{margin-top:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
+.pay label,.chk{display:flex;align-items:center;gap:6px;margin:0;font-weight:400}
+.pay input,.chk input{width:auto}
+.hint{font-size:12px;color:var(--mut);margin-top:3px}
+.unit{display:flex;align-items:center;gap:8px;margin-top:6px}
+.unit span{font-size:13px;color:var(--mut);min-width:34px}
+button{font:inherit;font-size:14px;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+button.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+button:hover{filter:brightness(.96)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{padding:7px 11px;font-size:13px}
+.tabs button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc);font-weight:600}
+#out{padding:6px 4px;max-height:75vh;overflow:auto}
+#out h1{font-size:26px;margin:0 0 12px}
+#out h2{font-size:19px;margin:22px 0 8px}
+#out p,#out li{font-size:15px}
+.empty{color:var(--mut);text-align:center;padding:60px 10px}
+.toast{position:fixed;bottom:20px;right:20px;background:#1c2230;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Store Policy Pages Generator</h1>
+  <p>Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.</p>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2>Business details</h2>
+    <label>Business Name *</label><input id="businessName" placeholder="Azora Glam">
+    <label>Website URL <small>(optional)</small></label><input id="website" placeholder="https://example.com">
+    <div class="row">
+      <div><label>Business Email *</label><input id="email" type="email"></div>
+      <div><label>Business Phone *</label><input id="phone"></div>
+    </div>
+    <label>Business Address *</label><textarea id="address" placeholder="Street, City, State/Province, Postal Code, Country"></textarea>
+    <div id="combo_hours" class="combo"></div>
+    <label>Time Zone</label><select id="tz"></select>
+    <label>Founded <small>(year, optional)</small></label><input id="founded" placeholder="2024">
+    <label class="chk" style="margin-top:12px"><input type="checkbox" id="contactForm" checked> Mention a contact form on the Contact Us page <small>(add the form itself with Shopify's contact template or a WordPress form plugin)</small></label>
+    <div class="hint">Privacy inquiries and order-change contacts use your Business Email and Business Phone.</div>
+
+    <h2 style="margin-top:22px">Products &amp; owner</h2>
+    <label>Store Products *</label>
+    <textarea id="products" placeholder="e.g. women's skincare, makeup, hair accessories and gift sets"></textarea>
+    <label>Brand message / what makes you unique <small>(optional)</small></label>
+    <textarea id="brandMsg" placeholder="e.g. affordable quality, cruelty-free, carefully sourced"></textarea>
+    <div class="row">
+      <div><label>Owner Name</label><input id="ownerName" placeholder="Sara Khan"></div>
+      <div><label>Owner Title</label><input id="ownerTitle" placeholder="Founder"></div>
+    </div>
+    <label>About Owner</label>
+    <textarea id="ownerBio" placeholder="Background, experience, why they started the store, interests…"></textarea>
+    <label>Team introduction <small>(optional)</small></label>
+    <textarea id="team" placeholder="e.g. A small team of 4 handling customer care, packing and sourcing."></textarea>
+
+    <h2 style="margin-top:22px">Location &amp; currency</h2>
+    <label>Shipping &amp; Refund Country *</label>
+    <select id="countries"></select>
+    <div class="hint">Countries supported by Google Merchant Center. Also used as the governing law and dispute-resolution location.</div>
+    <label>Currency <small>(auto-selected from the country, change it if you need)</small></label>
+    <select id="currency"></select>
+    <input id="currency_in" placeholder="Currency code, e.g. PKR" style="display:none;margin-top:6px">
+    <div class="hint" id="curHint"></div>
+
+    <h2 style="margin-top:22px">Accepted payment methods</h2>
+    <div class="pay" id="pay"></div>
+    <label>Other payment methods <small>(comma separated)</small></label><input id="otherPay" placeholder="e.g. Afterpay, Klarna">
+
+    <h2 style="margin-top:22px">Orders &amp; shipping</h2>
+    <div class="row">
+      <div><label>Order Cut-Off Time</label><select id="cutoff"></select></div>
+      <div id="combo_cancel" class="combo"></div>
+    </div>
+    <div class="row">
+      <div id="combo_handling" class="combo"></div>
+      <div id="combo_transit" class="combo"></div>
+    </div>
+    <label>Total Delivery Time <small>(auto: handling + transit)</small></label><input id="total" readonly placeholder="Calculated automatically">
+    <label>Shipping Costs</label><input id="shipcost" placeholder="Free over $50, otherwise $5.99">
+    <div class="row">
+      <div id="combo_methods" class="combo"></div>
+      <div><label>Carriers</label><input id="carriers" placeholder="UPS, FedEx, USPS"></div>
+    </div>
+    <label>Shipping Restrictions <small>(optional)</small></label><input id="restrictions" placeholder="e.g. No PO boxes, no deliveries to remote islands">
+
+    <h2 style="margin-top:22px">Returns &amp; refunds</h2>
+    <label>Accept Product Returns</label>
+    <select id="acceptReturns">
+      <option value="all">Yes, I accept returns for defective and non-defective products</option>
+      <option value="defective">I accept returns for defective products only</option>
+      <option value="none">No, I don't accept returns</option>
+    </select>
+    <label>Exchanges</label>
+    <select id="exchanges">
+      <option value="yes">Yes, I accept exchanges</option>
+      <option value="no">No, I don't accept exchanges</option>
+    </select>
+    <div id="retWrap">
+      <div id="combo_window" class="combo"></div>
+      <div id="condWrap">
+        <label>Product Condition for Return or Exchange</label>
+        <select id="condition">
+          <option value="new">Only new products. This includes products that are unopened in original packaging or have never been used.</option>
+          <option value="slight">New and slightly used products. This includes products that are opened or have been slightly used.</option>
+        </select>
+      </div>
+      <label>Return method <small>(select all that apply)</small></label>
+      <div class="pay" id="retMethods">
+        <label><input type="checkbox" name="rm" value="store"> In store</label>
+        <label><input type="checkbox" name="rm" value="drop"> At a drop-off location</label>
+        <label><input type="checkbox" name="rm" value="mail" checked> By mail</label>
+      </div>
+      <div id="labelWrap">
+        <label>Return label</label>
+        <select id="retLabel">
+          <option value="included">Included in the package</option>
+          <option value="download">Download and print</option>
+          <option value="customer">Customer's responsibility</option>
+        </select>
+      </div>
+      <div id="restockWrap">
+        <label>Restocking Fee</label>
+        <select id="restockType">
+          <option value="none">No cost</option>
+          <option value="fixed">Fixed cost</option>
+          <option value="percent">Percentage of product price</option>
+        </select>
+        <div class="unit" id="restockAmtWrap" style="display:none"><span id="restockUnit"></span><input id="restockAmt" type="number" min="0" step="0.01"></div>
+      </div>
+    </div>
+    <div id="combo_refundMethod" class="combo"></div>
+    <div id="combo_refundTime" class="combo"></div>
+    <div class="hint" id="retCurHint">Refunds are issued in the currency selected above.</div>
+
+    <div class="bar">
+      <button class="p" id="gen">Generate pages</button>
+      <button id="regen" title="Same details, different wording">Rewrite wording</button>
+      <button id="clear">Clear form</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Generated pages</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="bar" style="margin:0 0 12px">
+      <button id="copyHtml">Copy HTML</button>
+      <button id="copyTxt">Copy plain text</button>
+      <button id="dlAll">Download all pages (.html)</button>
+      <label class="chk" style="margin-left:6px"><input type="checkbox" id="keepH1"> Include page title (H1) in copied HTML</label>
+    </div>
+    <div class="hint" style="margin-bottom:10px">Copied HTML uses only h2, p, ul, strong, a and br, which Shopify and WordPress both accept. Shopify: Pages → open page → click the &lt;&gt; “Show HTML” button in the editor and paste. WordPress: add a “Custom HTML” block (or the Classic editor’s Text tab) and paste. Leave the H1 off: both platforms already use the page title as the H1.</div>
+    <div id="out"><div class="empty">Fill in the form and press “Generate pages”.</div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ================= DATA =================
+// Countries where Google Merchant Center supports Shopping ads & free listings (support.google.com/merchants/answer/160637)
+const COUNTRIES = [
+['Argentina','ARS'],['Australia','AUD'],['Austria','EUR'],['Bahrain','BHD'],['Belarus','BYN'],['Belgium','EUR'],['Brazil','BRL'],['Canada','CAD'],['Chile','CLP'],['Colombia','COP'],['Czechia','CZK'],['Denmark','DKK'],['Ecuador','USD'],['Egypt','EGP'],['Ethiopia','ETB'],['Finland','EUR'],['France','EUR'],['Georgia','GEL'],['Germany','EUR'],['Ghana','GHS'],['Greece','EUR'],['Hong Kong','HKD'],['Hungary','HUF'],['India','INR'],['Indonesia','IDR'],['Ireland','EUR'],['Israel','ILS'],['Italy','EUR'],['Japan','JPY'],['Jordan','JOD'],['Kazakhstan','KZT'],['Kenya','KES'],['Kuwait','KWD'],['Lebanon','LBP'],['Malaysia','MYR'],['Mauritius','MUR'],['Mexico','MXN'],['Netherlands','EUR'],['New Zealand','NZD'],['Nigeria','NGN'],['Norway','NOK'],['Oman','OMR'],['Paraguay','PYG'],['Peru','PEN'],['Philippines','PHP'],['Poland','PLN'],['Portugal','EUR'],['Romania','RON'],['Russia','RUB'],['Saudi Arabia','SAR'],['Singapore','SGD'],['Slovakia','EUR'],['South Africa','ZAR'],['South Korea','KRW'],['Spain','EUR'],['Sweden','SEK'],['Switzerland','CHF'],['Taiwan','TWD'],['Tanzania','TZS'],['Thailand','THB'],['Turkey','TRY'],['Uganda','UGX'],['Ukraine','UAH'],['United Arab Emirates','AED'],['United Kingdom','GBP'],['United States','USD'],['Uruguay','UYU'],['Uzbekistan','UZS'],['Vietnam','VND'],['Zambia','ZMW'],['Zimbabwe','USD']
+];
+const EXTRA_CUR = ['PKR','CNY','QAR','BDT','LKR','MAD','DZD','TND'];
+const TIMEZONES = [
+['-12:00','Anywhere on Earth (Baker Island)'],['-11:00','Samoa Standard Time (Pago Pago)'],['-10:00','Hawaii-Aleutian Standard Time (Honolulu)'],['-09:30','Marquesas Time (Taiohae)'],['-09:00','Alaska Standard Time (Anchorage)'],
+['-08:00','Pacific Standard Time (Los Angeles)'],['-08:00','Pacific Standard Time (Vancouver)'],['-07:00','Mountain Standard Time (Denver)'],['-07:00','Mountain Standard Time (Phoenix)'],['-07:00','Mountain Standard Time (Calgary)'],
+['-06:00','Central Standard Time (Chicago)'],['-06:00','Central Standard Time (Mexico City)'],['-06:00','Central Standard Time (Guatemala City)'],['-06:00','Central Standard Time (Winnipeg)'],['-06:00','Central Standard Time (San José)'],
+['-05:00','Eastern Standard Time (New York)'],['-05:00','Eastern Standard Time (Toronto)'],['-05:00','Eastern Standard Time (Panama City)'],['-05:00','Eastern Standard Time (Kingston)'],['-05:00','Colombia Time (Bogotá)'],['-05:00','Peru Time (Lima)'],['-05:00','Ecuador Time (Quito)'],
+['-04:00','Atlantic Standard Time (Halifax)'],['-04:00','Atlantic Standard Time (San Juan)'],['-04:00','Venezuela Time (Caracas)'],['-04:00','Bolivia Time (La Paz)'],['-04:00','Chile Standard Time (Santiago)'],['-04:00','Amazon Time (Manaus)'],
+['-03:30','Newfoundland Standard Time (St. John\'s)'],
+['-03:00','Argentina Time (Buenos Aires)'],['-03:00','Brasilia Time (São Paulo)'],['-03:00','Uruguay Time (Montevideo)'],['-03:00','Paraguay Time (Asunción)'],
+['-02:00','South Georgia Time (South Georgia)'],['-01:00','Azores Standard Time (Azores)'],['-01:00','Cape Verde Time (Praia)'],
+['+00:00','Coordinated Universal Time (UTC)'],['+00:00','Greenwich Mean Time (London)'],['+00:00','Greenwich Mean Time (Dublin)'],['+00:00','Western European Time (Lisbon)'],['+00:00','Greenwich Mean Time (Reykjavík)'],['+00:00','Greenwich Mean Time (Accra)'],['+00:00','Greenwich Mean Time (Dakar)'],
+['+01:00','Central European Time (Paris)'],['+01:00','Central European Time (Berlin)'],['+01:00','Central European Time (Madrid)'],['+01:00','Central European Time (Rome)'],['+01:00','Central European Time (Amsterdam)'],['+01:00','Central European Time (Brussels)'],['+01:00','Central European Time (Vienna)'],['+01:00','Central European Time (Zurich)'],['+01:00','Central European Time (Stockholm)'],['+01:00','Central European Time (Oslo)'],['+01:00','Central European Time (Copenhagen)'],['+01:00','Central European Time (Warsaw)'],['+01:00','Central European Time (Prague)'],['+01:00','Central European Time (Budapest)'],['+01:00','West Africa Time (Lagos)'],['+01:00','Morocco Time (Casablanca)'],
+['+02:00','Eastern European Time (Athens)'],['+02:00','Eastern European Time (Helsinki)'],['+02:00','Eastern European Time (Bucharest)'],['+02:00','Eastern European Time (Kyiv)'],['+02:00','Eastern European Time (Cairo)'],['+02:00','Israel Standard Time (Jerusalem)'],['+02:00','South Africa Standard Time (Johannesburg)'],['+02:00','Central Africa Time (Lusaka)'],['+02:00','Central Africa Time (Harare)'],['+02:00','Eastern European Time (Beirut)'],['+02:00','Eastern European Time (Amman)'],
+['+03:00','Moscow Standard Time (Moscow)'],['+03:00','Turkey Time (Istanbul)'],['+03:00','Arabia Standard Time (Riyadh)'],['+03:00','Arabia Standard Time (Kuwait City)'],['+03:00','Arabia Standard Time (Baghdad)'],['+03:00','Arabia Standard Time (Doha)'],['+03:00','Arabia Standard Time (Manama)'],['+03:00','East Africa Time (Nairobi)'],['+03:00','East Africa Time (Addis Ababa)'],['+03:00','East Africa Time (Dar es Salaam)'],['+03:00','East Africa Time (Kampala)'],['+03:00','Belarus Time (Minsk)'],
+['+03:30','Iran Standard Time (Tehran)'],
+['+04:00','Gulf Standard Time (Dubai)'],['+04:00','Gulf Standard Time (Muscat)'],['+04:00','Georgia Standard Time (Tbilisi)'],['+04:00','Armenia Time (Yerevan)'],['+04:00','Azerbaijan Time (Baku)'],['+04:00','Mauritius Time (Port Louis)'],
+['+04:30','Afghanistan Time (Kabul)'],
+['+05:00','Pakistan Standard Time (Karachi)'],['+05:00','Uzbekistan Time (Tashkent)'],['+05:00','Kazakhstan Time (Astana)'],['+05:00','Maldives Time (Malé)'],
+['+05:30','India Standard Time (Kolkata)'],['+05:30','Sri Lanka Standard Time (Colombo)'],['+05:45','Nepal Time (Kathmandu)'],
+['+06:00','Bangladesh Standard Time (Dhaka)'],['+06:00','Bhutan Time (Thimphu)'],['+06:30','Myanmar Time (Yangon)'],
+['+07:00','Indochina Time (Bangkok)'],['+07:00','Indochina Time (Ho Chi Minh City)'],['+07:00','Western Indonesia Time (Jakarta)'],
+['+08:00','China Standard Time (Beijing)'],['+08:00','Hong Kong Time (Hong Kong)'],['+08:00','Singapore Standard Time (Singapore)'],['+08:00','Malaysia Time (Kuala Lumpur)'],['+08:00','Philippine Standard Time (Manila)'],['+08:00','Taipei Standard Time (Taipei)'],['+08:00','Australian Western Standard Time (Perth)'],
+['+08:45','Australian Central Western Standard Time (Eucla)'],
+['+09:00','Japan Standard Time (Tokyo)'],['+09:00','Korea Standard Time (Seoul)'],['+09:30','Australian Central Standard Time (Darwin)'],['+09:30','Australian Central Standard Time (Adelaide)'],
+['+10:00','Australian Eastern Standard Time (Sydney)'],['+10:00','Australian Eastern Standard Time (Melbourne)'],['+10:00','Australian Eastern Standard Time (Brisbane)'],['+10:00','Chamorro Standard Time (Guam)'],['+10:00','Papua New Guinea Time (Port Moresby)'],
+['+10:30','Lord Howe Standard Time (Lord Howe Island)'],['+11:00','Solomon Islands Time (Honiara)'],['+11:00','New Caledonia Time (Nouméa)'],
+['+12:00','New Zealand Standard Time (Auckland)'],['+12:00','Fiji Time (Suva)'],['+12:45','Chatham Islands Standard Time (Chatham Islands)'],
+['+13:00','Tonga Time (Nuku\'alofa)'],['+13:00','Samoa Time (Apia)'],['+14:00','Line Islands Time (Kiritimati)']
+].map(([o,n])=>`(GMT${o}) ${n}`);
+
+const PAYMENTS = ['Visa','Mastercard','American Express','Discover','PayPal','Apple Pay','Google Pay','Shop Pay','Cash on Delivery','Bank Transfer'];
+const PAGES = [['about','About Us'],['contact','Contact Us'],['faq','FAQs'],['shipping','Shipping Policy'],['privacy','Privacy Policy'],['refund','Refund & Returns Policy'],['terms','Terms & Conditions'],['payment','Payment Policy']];
+
+const COMBOS = {
+  hours:{label:'Business Hours',ph:'e.g. Monday - Friday, 10:00 AM - 6:00 PM',opts:['Monday - Friday, 09:00 AM - 5:00 PM','Monday - Saturday, 09:00 AM - 5:00 PM','Monday - Sunday, 09:00 AM - 5:00 PM']},
+  cancel:{label:'Order Cancellation Time',ph:'e.g. 6 hours',opts:['12 hours','18 hours','24 hours','36 hours','48 hours']},
+  handling:{label:'Handling Time',ph:'e.g. 1 business day',opts:['1-2 business days','2-3 business days','3-4 business days','3-5 business days','4-5 business days']},
+  transit:{label:'Transit Time',ph:'e.g. 7-10 business days',opts:['1-3 business days','2-3 business days','3-5 business days','5-7 business days','5-9 business days','5-10 business days','4-5 business days']},
+  window:{label:'Return Window',ph:'e.g. 45 days',opts:['10 days','15 days','20 days','30 days','Lifetime']},
+  refundTime:{label:'Refund Processing Time',ph:'e.g. 3 days',opts:['5 days','7 days','10 days']},
+  refundMethod:{label:'Refund Method',ph:'e.g. Gift card',opts:['Original Payment Method','Store Credit','Exchange for Another Product','Replacement for Damaged or Defective Items','Refund via Bank Transfer','Partial Refund']},
+  methods:{label:'Shipping Methods',ph:'e.g. Standard, Express',opts:['Standard','Express']}
+};
+const COMBO_IDS = Object.keys(COMBOS);
+const FIELDS = ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','countries','currency','currency_in','otherPay','cutoff','shipcost','carriers','restrictions','acceptReturns','exchanges','condition','retLabel','restockType','restockAmt'];
+
+// ================= BUILD FORM CONTROLS =================
+COMBO_IDS.forEach(id=>{
+  const c = COMBOS[id];
+  $('combo_'+id).innerHTML = `<label>${c.label} <small>(or choose Custom)</small></label>
+  <select id="${id}_sel"><option value="">Select…</option>${c.opts.map(o=>`<option>${o}</option>`).join('')}<option value="__custom">Custom (type manually)</option></select>
+  <input id="${id}_in" placeholder="${c.ph}" style="display:none">`;
+});
+$('tz').innerHTML = '<option value="">Select time zone</option>' + TIMEZONES.map(t=>`<option>${t}</option>`).join('');
+$('countries').innerHTML = '<option value="">Select country</option>' + COUNTRIES.map(([n])=>`<option>${n}</option>`).join('');
+(function(){
+  const fmt = (h,m)=>{ const ap = h<12?'AM':'PM'; const hh = h%12===0?12:h%12; return hh+':'+String(m).padStart(2,'0')+' '+ap; };
+  let o = '<option value="">Select cut-off time</option>';
+  for(let h=0;h<24;h++) for(const m of [0,30]) o += `<option>${fmt(h,m)}</option>`;
+  $('cutoff').innerHTML = o;
+  let dn; try{ dn = new Intl.DisplayNames(['en'],{type:'currency'}); }catch(e){}
+  const codes = [...new Set([...COUNTRIES.map(c=>c[1]), ...EXTRA_CUR])].sort();
+  $('currency').innerHTML = '<option value="">Select currency</option>' + codes.map(c=>{ let n=''; try{ n = dn ? dn.of(c) : ''; }catch(e){} return `<option value="${c}">${c}${n?' – '+n:''}</option>`; }).join('') + '<option value="__custom">Other (type manually)</option>';
+})();
+$('pay').innerHTML = PAYMENTS.map((p,i)=>`<label><input type="checkbox" value="${p}" ${i<5?'checked':''}> ${p}</label>`).join('');
+
+// ================= HELPERS =================
+let seed = 1, current = 'about', pages = {};
+function rng(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+const pick = a => a[Math.floor(rng()*a.length)];
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const SYN = [
+  [/\bplease contact\b/gi, ['please reach out to','feel free to contact','please get in touch with','just contact']],
+  [/\bwe do our best to\b/gi, ['we try our best to','we work hard to','we make every effort to','we aim to']],
+  [/\bhappy to help\b/gi, ['glad to help','here to help','more than happy to help']],
+  [/\bas soon as we can\b/gi, ['as quickly as we can','as soon as possible','as fast as we can']],
+  [/\bsuch as\b/gi, ['like','for example','such as']],
+  [/\bright away\b/gi, ['straight away','immediately','as soon as you can']],
+  [/\bThank you for\b/gi, ['Thank you for','Thanks for']],
+  [/\bAll payments are processed securely\b/gi, ['Every payment is handled securely','All payments are handled securely','Payments are always processed securely']],
+  [/\bprocessed\b/gi, ['handled','processed','processed']],
+  [/\bmake it right\b/gi, ['put it right','sort it out','fix it']],
+  [/\bYou'll receive\b/gi, ["You'll get","You'll receive","You will receive"]],
+  [/\bright after\b/gi, ['just after','straight after','right after']],
+  [/\bwhen required by law\b/gi, ['where the law requires it','when the law requires it','when required by law']],
+  [/\bat any time\b/gi, ['whenever you like','at any time','at any point']],
+  [/\bplease read\b/gi, ['please take a look at','please read','have a look at']],
+  [/\bdouble-check\b/gi, ['check','double-check','review']],
+  [/\bin total\b/gi, ['altogether','in total','overall']],
+  [/\broughly\b/gi, ['around','roughly','approximately']],
+  [/\bshown at checkout\b/gi, ['displayed at checkout','shown at checkout','listed at checkout']],
+  [/\bwe'll do our best\b/gi, ["we'll do everything we can","we'll do our best","we'll try our hardest"]],
+  [/\bget back to you\b/gi, ['reply to you','get back to you','come back to you']],
+  [/\breach us\b/gi, ['contact us','reach us','get in touch']]
+];
+function humanize(html){
+  return html.split(/(<[^>]*>)/).map(seg=>{
+    if(seg.startsWith('<')) return seg;
+    let s = seg;
+    SYN.forEach(([re,alts])=>{ s = s.replace(re, m=>{ if(rng()<0.8){ let r = pick(alts); if(/^[A-Z]/.test(m)) r = r.charAt(0).toUpperCase()+r.slice(1); return r; } return m; }); });
+    return s;
+  }).join('');
+}
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+const linkify = s => String(s).replace(EMAIL_RE, m => `<a href="mailto:${m}">${m}</a>`);
+const ul = items => '<ul>' + items.map(i=>`<li>${i}</li>`).join('') + '</ul>';
+const ulS = items => ul(shuffle(items));
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const joinList = a => a.length<=1 ? (a[0]||'') : a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+const paras = s => esc(s).split(/\n\s*\n/).map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('\n');
+
+function comboVal(id){ const s = $(id+'_sel').value; return s==='__custom' ? $(id+'_in').value.trim() : s; }
+function currencyVal(){ const s = $('currency').value; return s==='__custom' ? $('currency_in').value.trim().toUpperCase() : s; }
+function currencyName(code){ try{ return new Intl.DisplayNames(['en'],{type:'currency'}).of(code) || code; }catch(e){ return code; } }
+function money(n,code){ try{ return new Intl.NumberFormat('en-US',{style:'currency',currency:code}).format(n); }catch(e){ return code ? n+' '+code : String(n); } }
+
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+function dayNames(hours){
+  const m = String(hours||'').match(/([A-Za-z]{3,9})\s*(?:-|–|—|to)\s*([A-Za-z]{3,9})/i);
+  if(!m) return '';
+  const f = x => DAYS.find(d=>d.toLowerCase().startsWith(x.toLowerCase().slice(0,3)));
+  const a = f(m[1]), b = f(m[2]);
+  return a && b ? `${a} - ${b}` : '';
+}
+function dayRange(s){
+  s = String(s||''); if(!/day/i.test(s)) return null;
+  let m = s.match(/(\d+)\s*(?:-|–|—|to)\s*(\d+)/i); if(m) return [+m[1], +m[2]];
+  m = s.match(/(\d+)/); return m ? [+m[1], +m[1]] : null;
+}
+function totalDelivery(handling, transit){
+  const h = dayRange(handling), t = dayRange(transit);
+  if(!h || !t) return '';
+  const a = h[0]+t[0], b = h[1]+t[1];
+  return (a===b ? a : a+'-'+b) + (b===1 ? ' business day' : ' business days');
+}
+
+// ================= READ FORM =================
+function getData(){
+  const g = id => $(id).value.trim();
+  const raw = {}; ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','cutoff','shipcost','carriers','restrictions'].forEach(f=>raw[f]=g(f));
+  const hours = comboVal('hours'), cancel = comboVal('cancel'), handlingRaw = comboVal('handling'), transitRaw = comboVal('transit'), methods = comboVal('methods');
+  const days = dayNames(hours);
+  const country = g('countries');
+  const cur = currencyVal();
+  const e = {};
+  e.businessName = esc(raw.businessName || 'our store');
+  e.website = esc(raw.website); e.hasSite = !!raw.website;
+  e.email = esc(raw.email || '[email]'); e.hasEmail = !!raw.email;
+  e.phone = esc(raw.phone); e.hasPhone = !!raw.phone;
+  e.address = linkify(esc(raw.address)); e.hasAddr = !!raw.address;
+  e.hours = esc(hours); e.hasHours = !!hours;
+  e.tz = esc(raw.tz);
+  e.hoursFull = esc(hours + (raw.tz ? ' ' + raw.tz : ''));
+  e.hasCutoff = !!raw.cutoff;
+  e.cutoffText = esc(raw.cutoff ? raw.cutoff + (raw.tz ? ' ' + raw.tz : '') : 'our daily cut-off time');
+  e.bdays = esc(days || 'Monday to Friday');
+  e.cancel = esc(cancel || 'a short time');
+  e.handling = esc((handlingRaw || '1-2 business days') + (days ? ` (${days})` : ''));
+  e.transit = esc((transitRaw || 'a few business days') + (days ? ` (${days})` : ''));
+  const total = totalDelivery(handlingRaw, transitRaw);
+  e.total = esc(total || 'a few business days');
+  e.shipcost = esc(raw.shipcost || 'the rate shown at checkout');
+  e.methodList = methods ? methods.split(/[,;]+/).map(s=>esc(s.trim())).filter(Boolean) : ['Standard'];
+  e.carrierList = raw.carriers ? raw.carriers.split(/[,;]+/).map(s=>esc(s.trim())).filter(Boolean) : [];
+  e.restrictions = linkify(esc(raw.restrictions));
+  e.founded = esc(raw.founded);
+  e.productsRaw = linkify(esc(raw.products || 'a range of quality products'));
+  e.brandMsg = linkify(esc(raw.brandMsg)); e.hasBrand = !!raw.brandMsg;
+  e.ownerName = esc(raw.ownerName); e.ownerTitle = esc(raw.ownerTitle || 'Owner'); e.hasOwner = !!(raw.ownerName || raw.ownerBio);
+  e.ownerBioHtml = raw.ownerBio ? linkify(paras(raw.ownerBio)) : '';
+  e.teamHtml = raw.team ? linkify(paras(raw.team)) : '';
+  e.contactForm = $('contactForm').checked;
+  // location / currency
+  e.country = esc(country || 'our home country');
+  e.regions = e.country; e.law = e.country;
+  e.currency = esc(cur); e.hasCur = !!cur;
+  e.curName = esc(cur ? currencyName(cur) : '');
+  e.curLabel = cur ? `${e.curName}${e.curName!==e.currency?' ('+e.currency+')':''}` : '';
+  // contact for order changes = business email + phone
+  const cParts = []; if(raw.email) cParts.push(`<a href="mailto:${e.email}">${e.email}</a>`); if(raw.phone) cParts.push(e.phone);
+  e.delayContact = cParts.length ? cParts.join(' or call ') : 'our support team';
+  // returns
+  e.retMode = $('acceptReturns').value; e.returns = e.retMode !== 'none';
+  e.exch = $('exchanges').value === 'yes';
+  const winRaw = comboVal('window') || '30 days';
+  e.winLife = /^lifetime$/i.test(winRaw);
+  e.window = esc(e.winLife ? 'lifetime' : winRaw);
+  e.winWithin = e.winLife ? 'at any time after' : `within ${e.window} of`;
+  e.refundTime = esc(comboVal('refundTime') || '5-7 days');
+  const rmRaw = comboVal('refundMethod') || 'Original Payment Method';
+  e.refundMethodText = esc(rmRaw);
+  e.refKey = /bank/i.test(rmRaw) ? 'bank' : /store credit/i.test(rmRaw) ? 'credit' : /exchange/i.test(rmRaw) ? 'exchange' : /replacement/i.test(rmRaw) ? 'replacement' : /partial/i.test(rmRaw) ? 'partial' : /original/i.test(rmRaw) ? 'original' : 'custom';
+  if(!e.returns){ e.refKey = 'original'; e.refundMethodText = 'your original payment method'; } // no returns: refund method is not used
+  e.condKey = $('condition').value;
+  e.conditionText = e.condKey === 'slight' ? 'new or only slightly used, meaning opened or lightly used items are fine' : 'new and unused, meaning unopened in the original packaging or never used';
+  e.rm = [...document.querySelectorAll('#retMethods input:checked')].map(c=>c.value);
+  e.labelKey = $('retLabel').value;
+  const rt = $('restockType').value, amt = g('restockAmt');
+  e.hasRestock = rt !== 'none' && amt !== '' && Number(amt) > 0;
+  e.restockText = !e.hasRestock ? '' : rt === 'fixed' ? esc(money(Number(amt), cur)) : esc(amt + '% of the product price');
+  // payments
+  const pays = [...document.querySelectorAll('#pay input:checked')].map(c=>c.value);
+  g('otherPay').split(/[,;]+/).map(s=>s.trim()).filter(Boolean).forEach(p=>pays.push(p));
+  e.payments = pays.map(esc);
+  e.cod = pays.some(p=>/cash on delivery/i.test(p)); e.bank = pays.some(p=>/bank transfer/i.test(p));
+  e.today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  return e;
+}
+const emailLink = d => /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(d.email) ? `<a href="mailto:${d.email}">${d.email}</a>` : d.email;
+const curSent = d => d.hasCur ? `All prices are shown and charged in ${d.curLabel}.` : '';
+const hrs = d => d.hasHours ? ` — ${d.hoursFull}` : '';
+
+const REFUND_NOTE = 'Refund may take some extra time to reflect into your account.';
+function refundMethodDesc(d){
+  return ({
+    original: `Refunds are issued to your original payment method.`,
+    credit: `Refunds are issued as store credit that you can use on a future order.`,
+    exchange: `Instead of a cash refund, you can exchange your item for another product.`,
+    replacement: `Damaged or defective items are replaced with the same product, subject to stock.`,
+    bank: `Refunds are sent to your bank account by bank transfer.`,
+    partial: `In some cases, such as when an item is returned used or incomplete, we may issue a partial refund based on its condition.`,
+    custom: `Refunds are issued via ${d.refundMethodText}.`
+  })[d.refKey];
+}
+function refundInfo(d){
+  const t = d.refundTime, cur = d.hasCur ? `, in ${d.currency}` : '';
+  let s = ({
+    original: `Once approved, your refund will be processed within ${t} and sent to your original payment method${cur}.`,
+    credit: `Once approved, your refund will be issued as store credit within ${t}${cur}.`,
+    exchange: `Once approved, we'll arrange an exchange for another product of your choice within ${t}.`,
+    replacement: `Once approved, we'll send a replacement for your damaged or defective item within ${t}.`,
+    bank: `Once approved, your refund will be processed within ${t} and sent to your bank account by bank transfer${cur}.`,
+    partial: `Once approved, a partial refund based on the condition of the item will be processed within ${t} and sent to your original payment method${cur}.`,
+    custom: `Once approved, your refund will be processed within ${t} via ${d.refundMethodText}${cur}.`
+  })[d.refKey];
+  s += ' ' + REFUND_NOTE;
+  if(d.refKey === 'bank') s += ` We will send you an email only from ${emailLink(d)} to ask for your bank details to process the refund.`;
+  return s;
+}
+
+// ================= PAGES =================
+function about(d){
+  const N = d.businessName;
+  return `<h1>About ${N}</h1>
+<p>${pick([`Welcome to ${N}. We're a small team that cares about getting the right products to the right people, and doing it without any fuss.`,`Hi, and welcome to ${N}. We started this store because we wanted online shopping to feel simpler, friendlier and a lot more honest.`,`Thanks for stopping by ${N}. We're an online store run by real people who want every order to arrive on time and exactly as described.`])}</p>
+<h2>Our story</h2>
+<p>${N} ${d.founded ? `was founded in ${d.founded}` : 'began'} ${pick([`with a simple idea: make good products easy to find and easy to buy.`,`because we saw a gap between what shoppers wanted and what they were being offered.`])} ${pick([`Since then we've grown step by step, one happy customer at a time.`,`We've kept the same approach ever since: honest descriptions, fair prices and real support.`])} ${d.hasAddr ? `We operate from ${d.address}.` : ''}</p>
+<h2>What we sell</h2>
+<p>${pick([`Our store focuses on`,`You'll find`,`We specialise in`])} ${d.productsRaw}. ${pick([`Every product is picked with care. If we wouldn't be happy to receive it ourselves, it doesn't make it into the store.`,`We look at quality, value and what customers actually ask for before adding anything new.`])}</p>
+<h2>Our mission and values</h2>
+<p>${pick([`Our mission is to give customers a smooth, trustworthy shopping experience from the first click to the doorstep.`,`We want shopping with us to be easy, safe and something you'd happily recommend to a friend.`])}</p>
+${ulS([`<strong>Honesty:</strong> accurate product descriptions and clear pricing${d.hasCur?' in '+d.currency:''}.`,`<strong>Reliability:</strong> orders processed within ${d.handling} and delivered to customers in ${d.regions}.`,`<strong>Fairness:</strong> ${d.returns?(d.winLife?'a lifetime return window':`a clear return window of ${d.window}`):'clear policies with no hidden surprises'}.`,`<strong>Care:</strong> real people answering your questions.`])}
+${d.hasBrand ? `<h2>What makes us different</h2>\n<p>${d.brandMsg}.</p>` : ''}
+${d.hasOwner ? `<h2>Meet the ${d.ownerTitle.toLowerCase()==='owner'?'owner':d.ownerTitle.toLowerCase()}</h2>
+${d.ownerName ? `<p><strong>${d.ownerName}</strong>, ${d.ownerTitle} of ${N}.</p>` : ''}
+${d.ownerBioHtml || ''}` : ''}
+${d.teamHtml ? `<h2>Our team</h2>\n${d.teamHtml}` : ''}
+<h2>Where to find us</h2>
+<p>${d.hasAddr ? `Our business address is ${d.address}. ` : ''}${d.hasEmail ? `Email us at ${emailLink(d)}` : 'Contact us through our Contact Us page'}${d.hasPhone?` or call ${d.phone}`:''}${hrs(d)}.</p>
+<p>Thank you for supporting ${N}.</p>`;
+}
+
+function contact(d){
+  const N = d.businessName;
+  let items = [];
+  if(d.hasEmail) items.push(`<strong>Customer service email:</strong> ${emailLink(d)}`);
+  if(d.hasPhone) items.push(`<strong>Phone:</strong> ${d.phone}`);
+  if(d.hasAddr) items.push(`<strong>Business address:</strong> ${d.address}`);
+  if(d.hasHours) items.push(`<strong>Business hours:</strong> ${d.hoursFull}`);
+  const form = d.contactForm ? `<h2>Send us a message</h2>
+<p>${pick([`Prefer to write to us directly? Fill in the contact form on this page with your name, email, order number (if you have one) and your message.`,`You can also use the contact form on this page. Just add your name, email and message, plus your order number if it's about an order, and we'll take it from there.`,`If you'd rather not email, use the contact form on this page and tell us how we can help.`])}</p>` : '';
+  return `<h1>Contact Us</h1>
+<p>${pick([`We're always happy to help. Here's how to reach the ${N} team.`,`Got a question about an order, a product or one of our policies? Reach us using the details below.`,`Need a hand? Our team at ${N} is just a message away.`])}</p>
+<h2>Our details</h2>
+${ul(items)}
+<h2>Order changes, cancellations &amp; delays</h2>
+<p>${pick([`If you need to change or cancel an order, or you're wondering about a delay, please contact`,`For anything to do with changing an order, cancelling it or checking on a late delivery, please reach out to`])} ${d.delayContact}. ${pick([`Include your order number so we can find your order quickly.`,`Please have your order number ready; it helps us sort things out faster.`])}</p>
+${form}
+<h2>What to expect</h2>
+<p>${pick([`We aim to reply to every message promptly`,`We try to answer every enquiry as soon as we can`])}${d.hasHours?`, during the business hours listed above`:''}. ${pick([`Messages sent outside those hours will be answered on the next working day.`,`If you write to us after hours, we'll get back to you when we're next in.`])}</p>`;
+}
+
+function faq(d){
+  const N = d.businessName;
+  const sec = (t, qa) => `<h2>${t}</h2>\n` + qa.map(([q,a])=>`<p><strong>${q}</strong><br>${a}</p>`).join('\n');
+  const prod = sec('Product information', [
+    [`What does ${N} sell?`, `We sell ${d.productsRaw}.`],
+    [`Are your product descriptions accurate?`, `We do our best to describe and photograph every item accurately. Colours can look slightly different depending on your screen. If you're unsure about something, email ${emailLink(d)} before you order.`],
+    [`Are your products authentic and new?`, `Yes. Everything we sell is new and as described on its product page, unless clearly stated otherwise.`]
+  ]);
+  const ord = sec('Orders and shipping', [
+    [`Where do you ship?`, `We currently ship to ${d.regions}.`],
+    [`How long will my order take to arrive?`, `Orders are processed within ${d.handling} and then take about ${d.transit} to be delivered. In total, that's roughly ${d.total}. Business days are ${d.bdays}, excluding public holidays.`],
+    [`How much does shipping cost?`, `${cap(d.shipcost)}. The exact cost is always shown at checkout before you pay.${d.hasCur?' '+curSent(d):''}`],
+    ...(d.hasCutoff ? [[`Is there an order cut-off time?`, `Yes. Orders placed before ${d.cutoffText} on a business day are processed that same day. Later orders are processed on the next business day.`]] : []),
+    [`Can I change or cancel my order?`, `You can ask us to change or cancel an order within ${d.cancel} of placing it. Contact ${d.delayContact} as soon as you can and we'll do our best.`],
+    [`Which payment methods do you accept?`, d.payments.length ? `We accept ${joinList(d.payments)}.${d.hasCur?' Prices are in '+d.currency+'.':''} All payments are processed securely.` : `Accepted payment methods are shown at checkout.`]
+  ]);
+  const retQ = d.retMode === 'all' ? [
+    [`What is your return policy?`, `You can return eligible items ${d.winWithin} delivery. Items must be ${d.conditionText}.`],
+    [`How do I start a return?`, `Email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''} with your order number. We'll send you the return instructions.`],
+    [`How long do refunds take?`, `${refundInfo(d)}`],
+    [`Is there a restocking fee?`, d.hasRestock ? `Yes, a restocking fee of ${d.restockText} applies to non-defective returns.` : `No, we don't charge a restocking fee.`],
+    [d.exch?`Can I exchange an item?`:`Do you offer exchanges?`, d.exch ? `Yes. Contact us ${d.winWithin} delivery and we'll arrange an exchange, subject to stock.` : `We don't offer direct exchanges. Return the item for a refund and place a new order.`]
+  ] : d.retMode === 'defective' ? [
+    [`What is your return policy?`, `We accept returns of defective, damaged or incorrect items ${d.winWithin} delivery. We can't accept returns of non-defective products.`],
+    [`How do I start a return?`, `Email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''} with your order number and photos of the problem.`],
+    [`How long do refunds take?`, `${refundInfo(d)}`],
+    [d.exch?`Can I exchange an item?`:`Do you offer exchanges?`, d.exch ? `Yes, defective items can be exchanged for the same product, subject to stock.` : `We don't offer exchanges, but approved defective items are refunded.`]
+  ] : [
+    [`Can I return an item?`, `We don't accept returns. If your item arrives damaged, defective or incorrect, contact us as soon as possible after delivery and we'll look into it.`]
+  ];
+  const ret = sec('Returns and refunds', retQ);
+  const gen = sec('General information', [
+    [`Is my personal information safe?`, `Yes. We only collect what we need to process your order, and we never sell your personal data. Please read our Privacy Policy.`],
+    [`How can I contact ${N}?`, `${d.hasEmail?`Email ${emailLink(d)}`:'Use the details on our Contact Us page'}${d.hasPhone?`, call ${d.phone}`:''}${hrs(d)}. We're happy to help.`]
+  ]);
+  return `<h1>Frequently Asked Questions</h1>
+<p>${pick([`Quick answers to the questions we hear most often. Can't find yours? Just ask us.`,`Here are straight answers to the things customers ask us most.`])}</p>
+${prod}\n${ord}\n${ret}\n${gen}`;
+}
+
+function shipping(d){
+  const N = d.businessName;
+  return `<h1>Shipping Policy</h1>
+<p>Last updated: ${d.today}</p>
+<p>${pick([`Thank you for shopping with ${N}. This page explains how and when we ship your order.`,`We want your order to reach you quickly and safely. Here's how shipping works at ${N}.`])}</p>
+<h2>Shipping methods and carriers</h2>
+<p>We offer the following shipping options: ${joinList(d.methodList)}. ${d.carrierList.length ? `Orders are delivered by ${joinList(d.carrierList)}, depending on your location and the service chosen.` : 'Orders are delivered by trusted carriers, depending on your location and the service chosen.'} The options available to you are shown at checkout.</p>
+<h2>Shipping costs</h2>
+<p>${cap(d.shipcost)}. ${curSent(d)} Your final shipping cost is always displayed at checkout before you confirm payment.</p>
+<h2>Order processing (handling time)</h2>
+<p>Orders are processed within ${d.handling}. ${pick([`Business days are ${d.bdays}, excluding public holidays.`,`We count business days as ${d.bdays}, not including public holidays.`])}${d.hasCutoff?` Orders placed before ${d.cutoffText} are processed the same business day; orders placed after that time are processed on the next business day.`:''}</p>
+<h2>Estimated delivery times</h2>
+<p>Estimated delivery times are counted from the day your order ships:</p>
+${ul([`<strong>${d.country}:</strong> about ${d.transit} in transit, and ${d.total} in total including processing.`])}
+<p>${pick([`These are estimates, not guarantees, and carriers can occasionally run late.`,`Delivery dates are estimates and can be affected by the carrier, weather or customs.`])}</p>
+<h2>Regions served</h2>
+<p>We currently ship to customers in ${d.regions}. We don't ship outside ${d.country} at this time.</p>
+<h2>Shipping restrictions</h2>
+<p>${d.restrictions ? d.restrictions+'. ' : ''}We can only deliver to addresses within ${d.country}. Some items may be restricted by carriers or local regulations, and we may contact you if an item in your order can't be shipped to your address.</p>
+<h2>Order confirmation and tracking</h2>
+<p>You'll receive an order confirmation email right after purchase and a second email with tracking details when your parcel ships. ${pick([`Tracking can take a little while to update after dispatch.`,`Please allow some time for the tracking information to show the first scan.`])}</p>
+<h2>Changes, cancellations and delays</h2>
+<p>You can request a change or cancellation within ${d.cancel} of placing your order. After that we can't guarantee the order hasn't already been packed or shipped. For changes, cancellations or questions about a delayed order, contact ${d.delayContact}.</p>
+<h2>Incorrect address</h2>
+<p>Please double-check your shipping address at checkout. If a parcel is returned to us because of an incorrect or incomplete address, we'll contact you to arrange re-shipment, and additional shipping charges may apply.</p>
+<h2>Damaged or lost parcels</h2>
+<p>If your order arrives damaged, or hasn't arrived after the estimated delivery window, please tell us at ${emailLink(d)} and include your order number and, for damage, a photo. We'll work with the carrier and make it right.</p>
+<h2>Contact us</h2>
+<p>Questions about shipping? Reach us at ${emailLink(d)}${d.hasPhone?` or ${d.phone}`:''}${hrs(d)}.</p>`;
+}
+
+function privacy(d){
+  const N = d.businessName;
+  return `<h1>Privacy Policy</h1>
+<p>Last updated: ${d.today}</p>
+<p>${pick([`At ${N}, we respect your privacy and take care of your personal information. This policy explains what we collect, why, who we share it with, and the choices you have.`,`Your privacy matters to us. This page explains how ${N} collects, uses and protects your information when you visit${d.hasSite?' '+d.website:' our website'} or place an order.`])}</p>
+<h2>Data collection</h2>
+<p>We collect the following types of information:</p>
+${ul([
+  `<strong>Information you give us:</strong> your name, email address, phone number, billing and shipping address, and order details when you buy, create an account, subscribe or contact us.`,
+  `<strong>Payment information:</strong> payment details such as card information are entered on our secure payment provider's page. We do not store your full card number on our servers.`,
+  `<strong>Information collected automatically:</strong> your IP address, device and browser type, pages viewed, time spent and referring site, gathered through cookies and similar technologies.`
+])}
+<h2>How we use your data</h2>
+${ulS([`<strong>Order processing:</strong> to process payments, ship your order, send order confirmations and handle returns or refunds.`,`<strong>Customer support:</strong> to answer your questions and resolve issues.`,`<strong>Marketing:</strong> to send promotions or updates, only where you've agreed to receive them. You can unsubscribe at any time using the link in our emails.`,`<strong>Analytics and improvement:</strong> to understand how visitors use our site, measure advertising and improve our products and services.`,`<strong>Security and legal:</strong> to prevent fraud and meet legal and tax obligations.`])}
+<h2>Cookies</h2>
+<p>We use cookies to keep items in your cart, remember your preferences and understand how visitors use our site. You can block or delete cookies in your browser settings, though some parts of the store may not work properly without them.</p>
+<h2>Third-party sharing</h2>
+<p>We don't sell your personal information. We share it only with trusted third parties who help us run the store, and only as needed to provide their services:</p>
+${ulS([`<strong>Payment processors</strong> (${d.payments.length?joinList(d.payments.slice(0,4)):'our payment providers'}) to take payments securely.`,`<strong>Shipping carriers${d.carrierList.length?' ('+joinList(d.carrierList)+')':''}</strong> to deliver your order.`,`<strong>Analytics and advertising services</strong> such as Google Analytics, Google Ads and Meta, to measure site performance and advertising.`,`<strong>E-commerce and email platforms</strong> that host our store and send our messages.`])}
+<p>We may also disclose information when required by law or to protect our rights.</p>
+<h2>Data retention and security</h2>
+<p>We keep your information only as long as needed for the purposes above or as required by law. We use reasonable technical and organisational measures, including SSL encryption, to protect your data. No online system is perfectly secure, but we do our best to keep yours safe.</p>
+<h2>Your rights</h2>
+<p>Depending on where you live, you have the right to:</p>
+${ulS([`access the personal information we hold about you;`,`correct information that's inaccurate;`,`request deletion of your personal data;`,`opt out of marketing communications at any time;`,`object to or restrict certain processing.`])}
+<p>To access or delete your data, email us at ${emailLink(d)} and we'll respond within a reasonable time (usually within 30 days). We may need to verify your identity first.</p>
+<h2>Children's privacy</h2>
+<p>Our store is not directed at children under 13, and we don't knowingly collect their personal information. If you believe a child has given us information, contact us and we'll delete it.</p>
+<h2>Third-party links</h2>
+<p>Our site may link to other websites. We're not responsible for their privacy practices, so please read their policies.</p>
+<h2>Changes to this policy</h2>
+<p>We may update this policy from time to time. The "last updated" date above shows when it was last changed, and significant changes will be announced on our website.</p>
+<h2>Contact information</h2>
+<p>For privacy-related questions or requests, contact ${N}:${d.hasAddr?`<br>${d.address}`:''}<br>Email: ${emailLink(d)}${d.hasPhone?`<br>Phone: ${d.phone}`:''}</p>`;
+}
+
+function refund(d){
+  const N = d.businessName;
+  const curNote = d.hasCur ? ` All refunds are issued in ${d.curLabel}.` : '';
+  const intro = `<p>${pick([`We want you to be happy with your purchase from ${N}. If something isn't right, this page explains how returns and refunds work.`,`Not quite what you hoped for? No problem. Here's how returns and refunds work at ${N}.`])} This policy applies to orders shipped to ${d.country}.${curNote}</p>`;
+  const contactP = `<h2>Contact us</h2>\n<p>For any questions about returns or refunds, email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''}${hrs(d)}.</p>`;
+  const cancelH = `<h2>Order cancellations</h2>\n<p>You may cancel an order within ${d.cancel} of placing it by contacting ${d.delayContact}. After that, once the order is packed or shipped, ${d.returns?'the standard return process applies':'it can no longer be cancelled'}.</p>`;
+
+  if(!d.returns){
+    return `<h1>Refund &amp; Returns Policy</h1>
+<p>Last updated: ${d.today}</p>
+<p>${pick([`Thank you for shopping with ${N}.`,`We appreciate your order from ${N}.`])} Please read this policy before you buy. It applies to orders shipped to ${d.country}.${curNote}</p>
+<h2>Eligibility</h2>
+<p>We don't accept returns. All sales are final, and we can't offer refunds for change-of-mind purchases.</p>
+<h2>Damaged, defective or incorrect items</h2>
+<p>If your order arrives damaged, defective or isn't what you ordered, contact us as soon as possible after delivery at ${emailLink(d)} with your order number and clear photos. We'll review your claim and let you know what we can do.</p>
+<h2>Restocking or return fees</h2>
+<p>No return or restocking fees apply, as we don't accept returns.</p>
+<h2>Refund processing time</h2>
+<p>${refundInfo(d)}</p>
+<h2>Exchange options</h2>
+<p>${d.exch ? `We can replace damaged, defective or incorrect items with the same product, subject to stock. If it's unavailable, we'll refund you.` : `We don't offer exchanges.`}</p>
+${cancelH}
+${contactP}`;
+  }
+
+  const methodItems = [];
+  if(d.rm.includes('store')) methodItems.push(`<strong>In store:</strong> bring the item to our store${d.hasAddr?' at '+d.address:''}.`);
+  if(d.rm.includes('drop')) methodItems.push(`<strong>At a drop-off location:</strong> hand the parcel in at a carrier drop-off or collection point. We'll tell you which one to use when you contact us.`);
+  if(d.rm.includes('mail')) methodItems.push(`<strong>By mail:</strong> post the item back to us. ` + ({
+    included: `A prepaid return label is included in your package, so you can use it straight away.`,
+    download: `We'll email you a return label that you can download and print at home.`,
+    customer: `You're responsible for arranging and paying for return shipping. We recommend a tracked service, as we can't accept responsibility for parcels lost on the way back to us.`
+  })[d.labelKey]);
+  const methodsHtml = methodItems.length ? `<p>You can return your item in the following ${methodItems.length>1?'ways':'way'}:</p>\n${ul(methodItems)}` : `<p>We'll tell you how to send the item back when you contact us.</p>`;
+
+  const eligibility = d.retMode === 'all'
+    ? `<p>${d.winLife ? `You can request a return${d.exch?' or exchange':''} at any time after your order is delivered.` : `You have <strong>${d.window}</strong> from the date your order is delivered to request a return${d.exch?' or exchange':''}.`} To be eligible, items must be ${d.conditionText}. Proof of purchase (your order number or receipt) is required. Items returned in a different condition may be refused or refunded at a reduced amount. Gift cards and items marked as final sale are not eligible.</p>`
+    : `<p>We accept returns of <strong>defective, damaged or incorrect items only</strong>. ${d.winLife ? 'You can tell us about the problem at any time after your order is delivered.' : `You have <strong>${d.window}</strong> from the date your order is delivered to tell us about the problem.`} Proof of purchase (your order number or receipt) and a photo of the issue are required. We can't accept returns of non-defective products or change-of-mind purchases.</p>`;
+
+  const fee = d.retMode === 'all'
+    ? (d.hasRestock ? `<p>A restocking fee of ${d.restockText} applies to returned non-defective items. It will be deducted from your refund. There is no fee for defective, damaged or incorrect items.</p>` : `<p>We don't charge a restocking fee.</p>`)
+    : `<p>We don't charge restocking or return fees for defective, damaged or incorrect items.</p>`;
+
+  const exchange = d.exch
+    ? (d.retMode === 'all' ? `<p>Need a different size, colour or product? Contact us ${d.winWithin} delivery. Exchanges are subject to stock availability. If the item isn't available, we'll offer a refund instead.</p>` : `<p>Defective, damaged or incorrect items can be exchanged for the same product, subject to stock. If it isn't available, we'll refund you instead.</p>`)
+    : `<p>We don't offer exchanges. To get a different item, ${d.retMode==='all'?'return the original for a refund and place a new order':'place a new order'}.</p>`;
+
+  return `<h1>Refund &amp; Returns Policy</h1>
+<p>Last updated: ${d.today}</p>
+${intro}
+<h2>Eligibility</h2>
+${eligibility}
+<h2>Process for returns</h2>
+${ul([`Email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''} with your order number and the reason for the return.`,`We'll reply with instructions and the return address.`,`Send the item back using one of the return methods below, securely packed.`,`Keep your tracking number or proof of return until the return reaches us.`])}
+<h2>Return methods</h2>
+${methodsHtml}
+<h2>Restocking or return fees</h2>
+${fee}
+<h2>Refund method</h2>
+<p>${refundMethodDesc(d)}</p>
+<h2>Refund processing time</h2>
+<p>When your return arrives, we'll inspect it and email you to confirm. ${refundInfo(d)} Original shipping charges are non-refundable unless the return is due to our error.</p>
+<h2>Exchange options</h2>
+${exchange}
+<h2>Damaged or incorrect items</h2>
+<p>If your item arrives damaged or incorrect, contact us right away with your order number and photos. We'll cover return shipping and send a replacement or refund.</p>
+${cancelH}
+${contactP}`;
+}
+
+function terms(d){
+  const N = d.businessName;
+  return `<h1>Terms &amp; Conditions</h1>
+<p>Last updated: ${d.today}</p>
+<h2>Introduction</h2>
+<p>${pick([`Welcome to ${N}. These Terms &amp; Conditions explain the rules for using ${d.hasSite?d.website:'our website'} and buying from us. They cover how you may use the site, how orders and payments work, our responsibilities and yours, and how disputes are handled. By using the site or placing an order, you agree to these terms.`,`These terms set out the rules for visiting and shopping at ${N}. By browsing the site or placing an order, you accept them, so please read them carefully.`])} This website is operated by ${N}${d.hasAddr?`, ${d.address}`:''}. "We", "us" and "our" refer to ${N}; "you" means the person using the site.</p>
+<h2>User obligations</h2>
+<p>When you use our site, you agree to:</p>
+${ulS([`provide accurate and complete information when ordering or contacting us;`,`use the site only for lawful purposes and not for fraud or abuse;`,`not copy, reproduce or reuse our content, images or branding without written permission;`,`not attempt unauthorised access, introduce malicious code, or scrape or disrupt the site.`])}
+<h2>Products and pricing</h2>
+<p>We sell ${d.productsRaw}. We try to describe and display products accurately, but colours may vary slightly depending on your screen. ${curSent(d)} Prices and availability may change without notice. If we spot a pricing error, we may cancel the order and refund you in full.</p>
+<h2>Order and payment information</h2>
+<p>Placing an order is an offer to buy. We accept it when we dispatch your items. After you order, you'll receive a confirmation email, and orders are processed within ${d.handling}. We may refuse or cancel an order, for example due to stock issues, suspected fraud or errors, and will refund any payment taken. You may request to cancel within ${d.cancel} of ordering.</p>
+<p>Payment is taken when you place your order${d.cod?', except for Cash on Delivery orders, which are paid on arrival':''}. We accept ${d.payments.length?joinList(d.payments):'the payment methods shown at checkout'}. Payments are handled by secure third-party processors. See our Payment Policy for more. Delivery is covered by our Shipping Policy, and returns and refunds by our Refund &amp; Returns Policy; both form part of these terms.</p>
+<h2>Liability and disclaimers</h2>
+<p>We do our best to supply products that match their descriptions. To the fullest extent permitted by law:</p>
+${ulS([`products are provided "as described" and we are not liable for minor variations in appearance;`,`we are not liable for delays or failures in delivery caused by carriers, customs, weather or other events beyond our control. Delivery dates are estimates;`,`for defective products, our liability is limited to repair, replacement or refund as set out in our Refund &amp; Returns Policy;`,`we are not liable for indirect or consequential losses arising from use of the site or products.`])}
+<p>Nothing in these terms limits any rights you have under applicable consumer protection laws.</p>
+<h2>Intellectual property</h2>
+<p>All content on this site, including text, images, logos and design, belongs to ${N} or its licensors and is protected by intellectual property laws.</p>
+<h2>Privacy</h2>
+<p>How we handle personal information is explained in our Privacy Policy.</p>
+<h2>Dispute resolution</h2>
+<p>These terms are governed by the laws of ${d.law}. If a dispute arises, please contact us first at ${emailLink(d)} so we can try to resolve it informally. If we can't, the dispute will be handled by the competent courts of ${d.law}.</p>
+<h2>Amendments</h2>
+<p>We may update these terms from time to time. The "last updated" date above shows the latest version, and we'll post the updated terms on this page. Significant changes may also be announced by email or a notice on our website. Continued use of the site after changes means you accept them.</p>
+<h2>Contact us</h2>
+<p>Questions? Email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''}.</p>`;
+}
+
+function payment(d){
+  const N = d.businessName;
+  return `<h1>Payment Policy</h1>
+<p>Last updated: ${d.today}</p>
+<p>${pick([`We want paying at ${N} to be easy and safe. Here's what you need to know.`,`This page explains how payments work when you shop with ${N}.`])}</p>
+<h2>Accepted payment methods</h2>
+${d.payments.length?ul(d.payments):'<p>The payment methods we accept are shown at checkout.</p>'}
+<h2>Currency and pricing</h2>
+<p>${curSent(d)} The total shown at checkout includes your items, shipping and any applicable taxes. ${pick([`If your card is in a different currency, your bank may add conversion fees.`,`If your card uses another currency, your bank may apply its own exchange rate or fees.`])}</p>
+<h2>When you're charged</h2>
+<p>Your payment is taken when you place your order${d.cod?', except for Cash on Delivery orders, which are paid when the parcel arrives':''}. If a payment is declined or fails, the order won't be processed.</p>
+${d.bank?`<h2>Bank transfer</h2>\n<p>Orders paid by bank transfer are processed once the payment has cleared. Please use your order number as the reference.</p>`:''}
+<h2>Payment security</h2>
+<p>Payments are processed through secure, encrypted payment providers. We never see or store your full card details. We may carry out fraud checks and ask for extra verification before shipping an order.</p>
+<h2>Failed, duplicate or incorrect charges</h2>
+<p>If you think you've been charged incorrectly or twice, contact us at ${emailLink(d)} with your order number and we'll look into it straight away.</p>
+<h2>Refunds</h2>
+<p>${refundInfo(d)} See our Refund &amp; Returns Policy for details.</p>
+<h2>Order cancellation</h2>
+<p>You can request cancellation within ${d.cancel} of ordering. Contact ${d.delayContact}. If approved, you'll be refunded in full.</p>
+<h2>Contact us</h2>
+<p>Questions about payments? Email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''}.</p>`;
+}
+
+const BUILD = {about,contact,faq,shipping,privacy,refund,terms,payment};
+
+// ================= UI =================
+// Standard closing block added to the end of every page
+function contactBlock(d){
+  const lines = [`<strong>Business Name:</strong> ${d.businessName}`];
+  if(d.hasEmail) lines.push(`<strong>Business Email:</strong> ${emailLink(d)}`);
+  if(d.hasPhone) lines.push(`<strong>Business Phone:</strong> ${d.phone}`);
+  if(d.hasHours) lines.push(`<strong>Business Hours:</strong> ${d.hoursFull}`);
+  if(d.hasAddr) lines.push(`<strong>Business Address:</strong> ${d.address}`);
+  return `<h2>Contact us</h2>\n<p>For any inquiries or assistance:</p>\n<p>${lines.join('<br>\n')}</p>`;
+}
+function build(){
+  if(!$('businessName').value.trim()){ toast('Please enter a Business Name first'); return false; }
+  const d = getData();
+  const s0 = seed;
+  pages = {};
+  PAGES.forEach(([k]) => {
+    seed = s0 + k.length*131;
+    const body = humanize(BUILD[k](d)).replace(/<h2>Contact (?:us|information)<\/h2>[\s\S]*$/, '').trimEnd();
+    pages[k] = body + '\n' + contactBlock(d);
+  });
+  seed = s0;
+  renderTabs(); show(current);
+  save();
+  return true;
+}
+function renderTabs(){
+  $('tabs').innerHTML = PAGES.map(([k,t])=>`<button data-k="${k}" class="${k===current?'on':''}">${t.replace('&','&amp;')}</button>`).join('');
+  $('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{current=b.dataset.k;renderTabs();show(current)});
+}
+function show(k){ if(pages[k]) $('out').innerHTML = pages[k]; }
+function toText(html){ const t=document.createElement('div'); t.innerHTML=html.replace(/<\/(h1|h2|p|li)>/g,'$&\n').replace(/<br>/g,'\n'); return t.textContent.replace(/\n{3,}/g,'\n\n').trim(); }
+function copy(text, msg){
+  const done = ()=>toast(msg);
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  function fallback(){ const t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); done(); }
+}
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+function save(){ try{
+  const o = {f:{}, c:{}, pay:[...document.querySelectorAll('#pay input:checked')].map(c=>c.value), rm:[...document.querySelectorAll('#retMethods input:checked')].map(c=>c.value), cf:$('contactForm').checked};
+  FIELDS.forEach(f=>o.f[f]=$(f).value); COMBO_IDS.forEach(id=>o.c[id]=[$(id+'_sel').value,$(id+'_in').value]);
+  localStorage.setItem('policyGenV3',JSON.stringify(o)); }catch(e){} }
+function load(){ try{
+  const o = JSON.parse(localStorage.getItem('policyGenV3')||'null'); if(!o) return;
+  FIELDS.forEach(f=>{ if(o.f[f]!==undefined) $(f).value = o.f[f]; });
+  COMBO_IDS.forEach(id=>{ if(o.c[id]){ $(id+'_sel').value = o.c[id][0]; $(id+'_in').value = o.c[id][1]; } });
+  if(o.pay) document.querySelectorAll('#pay input').forEach(c=>c.checked = o.pay.includes(c.value));
+  if(o.rm) document.querySelectorAll('#retMethods input').forEach(c=>c.checked = o.rm.includes(c.value));
+  if(o.cf!==undefined) $('contactForm').checked = o.cf;
+}catch(e){} }
+
+function refreshUI(){
+  COMBO_IDS.forEach(id=>{ $(id+'_in').style.display = $(id+'_sel').value==='__custom' ? '' : 'none'; });
+  $('currency_in').style.display = $('currency').value==='__custom' ? '' : 'none';
+  // total delivery (auto)
+  const t = totalDelivery(comboVal('handling'), comboVal('transit'));
+  $('total').value = t;
+  $('total').placeholder = (comboVal('handling') && comboVal('transit')) ? 'Enter days in the handling/transit time to calculate' : 'Calculated automatically';
+  // returns UI
+  const mode = $('acceptReturns').value;
+  $('retWrap').style.display = mode==='none' ? 'none' : '';
+  $('combo_refundMethod').style.display = mode==='none' ? 'none' : '';
+  $('condWrap').style.display = mode==='all' ? '' : 'none';
+  $('restockWrap').style.display = mode==='all' ? '' : 'none';
+  $('labelWrap').style.display = [...document.querySelectorAll('#retMethods input')].some(c=>c.value==='mail' && c.checked) ? '' : 'none';
+  const rt = $('restockType').value, cur = currencyVal();
+  $('restockAmtWrap').style.display = rt==='none' ? 'none' : '';
+  $('restockUnit').textContent = rt==='fixed' ? (cur || '') : '%';
+  $('restockAmt').placeholder = rt==='fixed' ? 'Amount, e.g. 5.00' : 'Percentage, e.g. 10';
+  const cn = cur ? currencyName(cur) + ' (' + cur + ')' : '';
+  $('curHint').textContent = cn ? `Prices and refunds will be written in ${cn}.` : '';
+  $('retCurHint').textContent = cn ? `Return currency: refunds are issued in ${cn}.` : 'Refunds are issued in the currency selected above.';
+}
+// country change -> auto currency
+$('countries').addEventListener('change', ()=>{
+  const c = COUNTRIES.find(x=>x[0]===$('countries').value);
+  if(c) $('currency').value = c[1];
+  refreshUI();
+});
+document.addEventListener('input', refreshUI);
+document.addEventListener('change', refreshUI);
+
+const newSeed = () => (Math.random()*2147483647)|0;
+$('gen').onclick = ()=>{ seed = newSeed(); build(); };
+$('regen').onclick = ()=>{ seed = newSeed(); build(); };
+$('clear').onclick = ()=>{
+  FIELDS.forEach(f=>{ const el=$(f); if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
+  COMBO_IDS.forEach(id=>{ $(id+'_sel').selectedIndex=0; $(id+'_in').value=''; });
+  document.querySelectorAll('#retMethods input').forEach(c=>c.checked = c.value==='mail');
+  pages={}; $('out').innerHTML='<div class="empty">Fill in the form and press “Generate pages”.</div>';
+  try{localStorage.removeItem('policyGenV3')}catch(e){}
+  refreshUI();
+};
+const cleanHtml = k => { let h = pages[k]; if(!$('keepH1').checked) h = h.replace(/<h1>[\s\S]*?<\/h1>\s*/,''); return h.replace(/\n{2,}/g,'\n').trim(); };
+$('copyHtml').onclick = ()=>{ if(pages[current]) copy(cleanHtml(current),'HTML copied'); else toast('Generate pages first'); };
+$('copyTxt').onclick = ()=>{ if(pages[current]) copy(toText(pages[current]),'Text copied'); else toast('Generate pages first'); };
+$('dlAll').onclick = ()=>{
+  if(!Object.keys(pages).length){ toast('Generate pages first'); return; }
+  const name = $('businessName').value.trim() || 'store';
+  const body = PAGES.map(([k,t])=>`<section id="${k}" style="margin-bottom:60px">\n<!-- ${t} -->\n${pages[k]}\n</section>`).join('\n<hr>\n');
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${esc(name)} - Store Pages</title><style>body{font-family:system-ui,sans-serif;max-width:800px;margin:30px auto;padding:0 16px;line-height:1.6}</style></head><body>\n${body}\n</body></html>`;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); a.download=name.replace(/\W+/g,'-').toLowerCase()+'-policy-pages.html'; a.click();
+};
+load(); refreshUI();
+</script>
+</body>
+</html>
