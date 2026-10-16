@@ -1,6 +1,9 @@
 # E-commerce Policy Pages Generator Tool
 
-A single-file HTML tool that writes the store pages Google Merchant Center expects, in a natural, human-sounding tone, from a short form. Open `store-policy-generator.html` in any browser. No install, no server and no internet connection are needed.
+A single-file HTML tool with two sections. Open `store-policy-generator.html` in any browser. No install, no server and no internet connection are needed.
+
+- **Policy Pages:** writes the store pages Google Merchant Center expects, in a natural, human-sounding tone, from a short form.
+- **Humanizer:** paste your own text and get a more natural, human-sounding rewrite. See [Humanizer](#humanizer).
 
 ## Pages it generates
 
@@ -15,7 +18,29 @@ A single-file HTML tool that writes the store pages Google Merchant Center expec
 
 Every page ends with the same "Contact us" block: business name, email, phone, hours with time zone, and address.
 
-## How to use
+## Humanizer
+
+Switch to the **Humanizer** tab, paste any text you wrote (a product description, an About Us section, a policy paragraph, an email) and click **Humanize**. It works as plain text, or as HTML, in which case your tags, links and headings are left untouched and only the readable text changes.
+
+What it does:
+
+- Swaps stiff or stock wording for plain words ("utilize" becomes "use", "prior to" becomes "before", "in order to" becomes "to")
+- Cuts filler and stock phrases ("It is important to note that", "In today's fast-paced world")
+- Replaces stiff connectors ("Furthermore," "Moreover," "In conclusion,") with everyday ones
+- Adds contractions, breaks up very long sentences, and tidies em dashes and semicolons
+- Leaves emails, links, times, prices and abbreviations exactly as written
+
+Controls:
+
+- **Strength:** Light, Balanced or Strong
+- **Tone:** Professional, Friendly or Casual (Casual adds an occasional spoken-style opener, so keep it off legal pages)
+- **What to change:** turn any of the five kinds of edit on or off
+- **Another version:** same text, different wording. **Humanize** always gives the same result for the same text and settings
+- **Output:** before/after word count, average sentence length and reading ease, a "What changed" list, an HTML preview, and Copy, Copy as plain text, Download and Use as input buttons
+
+It uses built-in writing rules that run in your browser. Nothing is uploaded, and no AI service is involved. It makes text read more naturally, but it cannot promise any particular result in an AI-detection tool, so read the result once and add your own details.
+
+## How to use the Policy Pages section
 
 1. Open `store-policy-generator.html` in your browser.
 2. Fill in the form. Business Name is required, and the more fields you complete, the more specific the pages become.

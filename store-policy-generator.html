@@ -43,15 +43,32 @@ button:hover{filter:brightness(.96)}
 .empty{color:var(--mut);text-align:center;padding:60px 10px}
 .toast{position:fixed;bottom:20px;right:20px;background:#1c2230;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1}
+[hidden]{display:none!important}
+.nav{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.nav button{padding:8px 16px;border-radius:999px;font-size:14px}
+.nav button.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+.hz{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:900px){.hz{grid-template-columns:1fr}}
+#hzIn,#hzOut{min-height:300px;line-height:1.55}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{background:var(--acc2);color:var(--acc);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+.hzprev{border:1px solid var(--line);border-radius:8px;padding:10px 14px;max-height:340px;overflow:auto;font-size:15px}
+.hzprev h1,.hzprev h2,.hzprev h3{font-size:17px;margin:14px 0 6px}
+.hzlist{margin:8px 0 0;padding-left:20px;font-size:13px;color:var(--mut)}
+details summary{cursor:pointer;font-size:13px;font-weight:600}
 </style>
 </head>
 <body>
 <header>
   <h1>Store Policy Pages Generator</h1>
-  <p>Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.</p>
+  <p id="hdrSub">Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.</p>
+  <nav class="nav" aria-label="Sections">
+    <button type="button" class="on" data-view="policy">Policy Pages</button>
+    <button type="button" data-view="humanizer">Humanizer</button>
+  </nav>
 </header>
 
-<div class="wrap">
+<div class="wrap" id="view-policy">
   <div class="card">
     <h2>Business details</h2>
     <label>Business Name *</label><input id="businessName" placeholder="Azora Glam">
@@ -178,6 +195,52 @@ button:hover{filter:brightness(.96)}
     </div>
     <div class="hint" style="margin-bottom:10px">Copied HTML uses only h2, p, ul, strong, a and br, which Shopify and WordPress both accept. Shopify: Pages → open page → click the &lt;&gt; “Show HTML” button in the editor and paste. WordPress: add a “Custom HTML” block (or the Classic editor’s Text tab) and paste. Leave the H1 off: both platforms already use the page title as the H1.</div>
     <div id="out"><div class="empty">Fill in the form and press “Generate pages”.</div></div>
+  </div>
+</div>
+<div class="wrap hz" id="view-humanizer" hidden>
+  <div class="card">
+    <h2>Your text</h2>
+    <label for="hzIn">Paste or type your text <small>(plain text or HTML)</small></label>
+    <textarea id="hzIn" placeholder="Paste a product description, About Us section, policy paragraph, email, anything you wrote or generated that sounds stiff."></textarea>
+    <div class="hint" id="hzInCount">0 words</div>
+    <div class="row">
+      <div><label for="hzLevel">Strength</label>
+        <select id="hzLevel"><option value="1">Light: gentle edits</option><option value="2" selected>Balanced</option><option value="3">Strong: rewrite more</option></select></div>
+      <div><label for="hzTone">Tone</label>
+        <select id="hzTone"><option value="professional">Professional</option><option value="friendly" selected>Friendly</option><option value="casual">Casual</option></select></div>
+    </div>
+    <label for="hzFormat">Input format</label>
+    <select id="hzFormat"><option value="auto" selected>Auto-detect</option><option value="text">Plain text</option><option value="html">HTML (keeps your tags and links)</option></select>
+    <label>What to change</label>
+    <div class="pay">
+      <label><input type="checkbox" id="hzWords" checked> Swap stiff words for plain ones</label>
+      <label><input type="checkbox" id="hzFiller" checked> Cut filler and stock phrases</label>
+      <label><input type="checkbox" id="hzContr" checked> Use contractions</label>
+      <label><input type="checkbox" id="hzSplit" checked> Break up long sentences</label>
+      <label><input type="checkbox" id="hzPunct" checked> Tidy dashes and semicolons</label>
+    </div>
+    <div class="bar">
+      <button class="p" id="hzGo" type="button">Humanize</button>
+      <button id="hzAgain" type="button" title="Same text, different wording">Another version</button>
+      <button id="hzSample" type="button">Load sample</button>
+      <button id="hzClear" type="button">Clear</button>
+    </div>
+    <div class="hint">Tip: press Ctrl/&#8984; + Enter in the text box to run it.</div>
+  </div>
+
+  <div class="card">
+    <h2>Humanized text</h2>
+    <textarea id="hzOut" placeholder="Your rewritten text appears here. You can edit it before copying."></textarea>
+    <div class="chips" id="hzStats"></div>
+    <div class="bar" style="margin-top:12px">
+      <button id="hzCopy" type="button">Copy</button>
+      <button id="hzCopyTxt" type="button" hidden>Copy as plain text</button>
+      <button id="hzDl" type="button">Download .txt</button>
+      <button id="hzReuse" type="button" title="Run it through again">Use as input</button>
+    </div>
+    <details id="hzChangesWrap" style="margin-top:14px" hidden><summary>What changed</summary><div id="hzChanges"></div></details>
+    <div id="hzPrevWrap" hidden><h2 style="margin-top:18px">Preview</h2><div class="hzprev" id="hzPreview"></div></div>
+    <div class="hint" style="margin-top:12px">This rewrites with built-in writing rules in your browser, and nothing is sent anywhere. It makes text read more naturally, but it can't promise any particular result in an AI-detection tool, so read it through once and add your own details.</div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -810,6 +873,577 @@ $('dlAll').onclick = ()=>{
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([html],{type:'text/html'})); a.download=name.replace(/\W+/g,'-').toLowerCase()+'-policy-pages.html'; a.click();
 };
 load(); refreshUI();
+</script>
+<script>
+/* Humanizer engine: rule-based, runs fully in the browser. No network, no AI service. */
+(function (root) {
+'use strict';
+
+// ---------- small helpers ----------
+function makeRng(seed) {
+  let s = seed | 0;
+  return function () {
+    s = s + 0x6D2B79F5 | 0;
+    let t = Math.imul(s ^ s >>> 15, 1 | s);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const lowFirst = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+const startsVowel = w => /^[aeiou]/i.test(w);
+const wc = s => { const m = String(s).trim().match(/\S+/g); return m ? m.length : 0; };
+function matchCase(orig, repl) {
+  if (!repl) return repl;
+  const letters = orig.replace(/[^A-Za-z]/g, '');
+  if (letters.length > 1 && letters === letters.toUpperCase()) return repl.toUpperCase();
+  if (/^[A-Z]/.test(orig)) return cap(repl);
+  return repl;
+}
+
+// ---------- rule table ----------
+const RULES = [];
+// cat: swap | ai | filler | transition ; level: 1 light, 2 balanced, 3 strong ; start: only at sentence start ; art: optional leading a/an is recomputed
+function R(re, to, cat, level, o) { RULES.push(Object.assign({ re: re, g: new RegExp(re.source, re.flags.replace('g', '') + 'g'), to: to, cat: cat, level: level || 1 }, o || {})); }
+const forms = map => g => map[(g[0] || '').toLowerCase()];
+
+// -- sentence-start transitions (stiff connectors -> plain ones)
+R(/^(?:furthermore|moreover|additionally|in addition|what is more|besides this),?\s+/i, ['Also, ', 'Plus, ', 'On top of that, ', "What's more, "], 'transition', 1, { start: true });
+R(/^however,?\s+/i, (g, c) => c.tone === 'professional' ? ['Still, ', 'That said, '] : ['But ', 'Still, ', 'That said, '], 'transition', 2, { start: true });
+R(/^(?:therefore|consequently|as a result|thus|hence|accordingly),?\s+/i, ['So ', "That's why ", 'Because of this, '], 'transition', 1, { start: true });
+R(/^(?:nevertheless|nonetheless|notwithstanding this),?\s+/i, ['Still, ', 'Even so, '], 'transition', 1, { start: true });
+R(/^(?:subsequently|thereafter),?\s+/i, ['Then ', 'After that, '], 'transition', 1, { start: true });
+R(/^(?:in conclusion|to conclude|to sum up|in summary|to summarize|to summarise|in closing),?\s+/i, ['All in all, ', 'So, ', 'To sum it up, '], 'transition', 1, { start: true });
+R(/^first and foremost,?\s+/i, ['First, ', 'To start, '], 'transition', 1, { start: true });
+R(/^last but not least,?\s+/i, ['Lastly, ', 'Finally, '], 'transition', 1, { start: true });
+R(/^(?:with that being said|that being said|having said that),?\s+/i, ['Even so, ', 'Still, ', 'That said, '], 'transition', 1, { start: true });
+R(/^(?:needless to say|it goes without saying that),?\s+/i, [''], 'filler', 1, { start: true });
+R(/^in today['’]s (?:[\w-]+\s+){1,3}(?:world|age|era|landscape|market|environment|economy|society),?\s+/i, [''], 'ai', 1, { start: true });
+
+// -- filler and stock phrases
+R(/\bit is (?:important|essential|crucial|vital|imperative) to (?:note|mention|remember|understand|highlight|emphasi[sz]e|point out|keep in mind) that,?\s*/i, ['', '', 'Keep in mind that '], 'filler');
+R(/\bit is (?:worth|important) (?:noting|mentioning|remembering|highlighting) that,?\s*/i, ['', '', 'Keep in mind that '], 'filler');
+R(/\bit (?:should|must) be (?:noted|mentioned|emphasi[sz]ed|stressed) that,?\s*/i, ['', '', 'Keep in mind that '], 'filler');
+R(/\bit is noteworthy that,?\s*/i, [''], 'filler');
+R(/\bplease (?:note|be advised|be aware) that,?\s*/i, ['Just so you know, ', 'Heads up: ', 'Keep in mind that '], 'filler');
+R(/\bit goes without saying that,?\s*/i, [''], 'filler');
+R(/\bneedless to say,?\s*/i, [''], 'filler');
+R(/\bwe (?:would like|wish) to (?:inform|notify|let) you (?:know )?that\b/i, ['just so you know,', 'quick note:', 'heads up:'], 'filler');
+R(/\bdo not hesitate to (contact|reach out|ask|call|email|get in touch)\b/i, 'feel free to $1', 'filler');
+R(/\bshould you (have|need|require)\b/i, g => 'if you ' + (g[0].toLowerCase() === 'require' ? 'need' : g[0]), 'filler');
+R(/\bwe (?:would|will) be (?:happy|glad|pleased|delighted) to\b/i, ["we're happy to", "we're glad to"], 'filler');
+R(/\bwe are (?:pleased|delighted|thrilled|excited) to\b/i, ["we're happy to", "we're glad to"], 'filler');
+R(/\bwe pride ourselves on\b/i, ['we care about', 'we focus on'], 'filler');
+R(/\bit is recommended that you\b/i, ['we recommend that you', 'we suggest you'], 'filler');
+R(/\byou are required to\b/i, ['you need to', 'you have to'], 'filler', 2);
+R(/\bat your earliest convenience\b/i, 'as soon as you can', 'filler');
+R(/\bhereby\s+/i, '', 'filler');
+R(/\b(?:dedicated|committed|passionate|talented|skilled) (team|staff|professionals)\b/i, '$1', 'filler');
+R(/\bvalued (customers?|clients?|shoppers?)\b/i, '$1', 'filler');
+R(/\bkindly\b/i, 'please', 'filler');
+
+// -- wording: long phrases -> short ones
+R(/\bin order to\b/i, 'to', 'swap');
+R(/\bso as to\b/i, 'to', 'swap');
+R(/\bin an effort to\b/i, 'to', 'swap');
+R(/\bprior to\b/i, 'before', 'swap');
+R(/\bsubsequent to\b/i, 'after', 'swap');
+R(/\bin the event that\b/i, 'if', 'swap');
+R(/\bin the case that\b/i, 'if', 'swap');
+R(/\b(?:due to|owing to|on account of|by virtue of) the fact that\b/i, 'because', 'swap');
+R(/\b(?:despite|in spite of) the fact that\b/i, 'even though', 'swap');
+R(/\bat (?:this point in time|the present time|the present moment)\b/i, 'now', 'swap');
+R(/\bin the near future\b/i, 'soon', 'swap');
+R(/\bon a (daily|weekly|monthly|yearly|regular) basis\b/i, forms({ daily: 'every day', weekly: 'every week', monthly: 'every month', yearly: 'every year', regular: 'regularly' }), 'swap');
+R(/\b(?:has|have) the ability to\b/i, 'can', 'swap');
+R(/\b(?:is|are) able to\b/i, 'can', 'swap');
+R(/\b(?:was|were) able to\b/i, 'could', 'swap');
+R(/\b(?:is|are) unable to\b/i, 'cannot', 'swap');
+R(/\ba (?:large|great|significant) number of\b/i, ['many', 'lots of'], 'swap');
+R(/\ba number of\b/i, ['several', 'a few'], 'swap');
+R(/\b(?:the|a) majority of(?=\s+(?:the|our|your|my|these|those|their|its)\b)/i, 'most of', 'swap');
+R(/\b(?:the|a) majority of\b/i, 'most', 'swap');
+R(/\bin the majority of cases\b/i, 'usually', 'swap');
+R(/\bfor the purpose of\b/i, 'for', 'swap');
+R(/\b(?:with regards? to|with respect to|in regards? to|in relation to|pertaining to|in connection with)\b/i, 'about', 'swap');
+R(/\bregarding\b/i, 'about', 'swap');
+R(/\bin addition to\b/i, ['besides', 'on top of', 'as well as'], 'swap');
+R(/\ba (?:wide|broad|vast) (?:range|variety|array|selection) of\b/i, ['lots of', 'plenty of', 'many different'], 'swap');
+R(/\ba plethora of\b/i, ['lots of', 'plenty of'], 'ai');
+R(/\beach and every\b/i, 'every', 'swap');
+R(/\bat all times\b/i, 'always', 'swap');
+R(/\bfor the most part\b/i, 'mostly', 'swap');
+R(/\bin a timely manner\b/i, ['promptly', 'quickly'], 'swap');
+R(/\bin close proximity to\b/i, 'near', 'swap');
+R(/\bin the vicinity of\b/i, 'near', 'swap');
+R(/\bin excess of\b/i, 'over', 'swap');
+R(/\bin lieu of\b/i, 'instead of', 'swap');
+R(/\bwith the exception of\b/i, 'except for', 'swap');
+R(/\bin the absence of\b/i, 'without', 'swap');
+R(/\bin accordance with\b/i, ['under', 'following'], 'swap', 2);
+R(/\bpursuant to\b/i, 'under', 'swap', 2);
+R(/\bthe aforementioned\b/i, 'the above', 'swap', 2);
+
+// -- wording: single words and verbs
+R(/\butiliz(e|es|ed|ing)\b/i, forms({ e: 'use', es: 'uses', ed: 'used', ing: 'using' }), 'swap');
+R(/\butili[sz]ation\b/i, 'use', 'swap');
+R(/\bcommenc(e|es|ed|ing)\b/i, forms({ e: 'start', es: 'starts', ed: 'started', ing: 'starting' }), 'swap');
+R(/\bterminat(e|es|ed|ing)\b/i, forms({ e: 'end', es: 'ends', ed: 'ended', ing: 'ending' }), 'swap');
+R(/\bassist(s|ed|ing)?\b/i, g => ({ '': 'help', s: 'helps', ed: 'helped', ing: 'helping' })[(g[0] || '').toLowerCase()], 'swap');
+R(/\bassistance\b/i, 'help', 'swap');
+R(/\bfacilitat(e|es|ed|ing)\b/i, forms({ e: 'help with', es: 'helps with', ed: 'helped with', ing: 'helping with' }), 'swap');
+R(/\bendeavou?r(s|ed|ing)? to\b/i, g => ({ '': 'try to', s: 'tries to', ed: 'tried to', ing: 'trying to' })[(g[0] || '').toLowerCase()], 'swap');
+R(/\bstrive(s)? to\b/i, g => g[0] ? ['tries to', 'works to'] : ['try to', 'work to'], 'swap');
+R(/\battempt(s|ed|ing)? to\b/i, g => ({ '': 'try to', s: 'tries to', ed: 'tried to', ing: 'trying to' })[(g[0] || '').toLowerCase()], 'swap', 2);
+R(/\bdemonstrat(e|es|ed|ing)\b/i, forms({ e: 'show', es: 'shows', ed: 'showed', ing: 'showing' }), 'swap');
+R(/\bobtain(s|ed|ing)?\b/i, g => ({ '': 'get', s: 'gets', ed: 'got', ing: 'getting' })[(g[0] || '').toLowerCase()], 'swap');
+R(/\binquir(e|es|ed|ing)\b/i, forms({ e: 'ask', es: 'asks', ed: 'asked', ing: 'asking' }), 'swap', 2);
+R(/\binform(s|ed|ing)? (you|them|us|him|her|customers)\b/i, g => ({ '': 'tell', s: 'tells', ed: 'told', ing: 'telling' })[(g[0] || '').toLowerCase()] + ' ' + g[1], 'swap', 2);
+R(/\brequire(s)?\b(?!\s+that\b)/i, g => g[0] ? 'needs' : 'need', 'swap', 2);
+R(/\bensur(e|es|ed|ing) that\b/i, forms({ e: 'make sure', es: 'makes sure', ed: 'made sure', ing: 'making sure' }), 'swap');
+R(/\bprovid(e|es|ing) (you|them|customers|clients|users) with\b/i, g => ({ e: 'give', es: 'gives', ing: 'giving' })[g[0].toLowerCase()] + ' ' + g[1], 'swap');
+R(/\bnumerous\b/i, 'many', 'swap');
+R(/\binsufficient\b/i, 'not enough', 'swap');
+R(/\bsufficient\b/i, 'enough', 'swap');
+R(/\b(if|when|where|as|whenever) necessary\b/i, '$1 needed', 'swap');
+R(/\bapproximately\b/i, ['about', 'around'], 'swap');
+R(/\badditional(?=\s+(?:information|details|help|support|assistance|time|context)\b)/i, 'more', 'swap');
+R(/\b(an?\s+)?additional\b/i, 'extra', 'swap', 1, { art: true });
+R(/\bsubsequently\b/i, 'later', 'swap', 2);
+R(/\bwhilst\b/i, 'while', 'swap');
+R(/\bamongst\b/i, 'among', 'swap');
+R(/\bupon\b/i, 'on', 'swap');
+R(/\boptimal\b/i, 'best', 'swap', 2);
+R(/\bindividuals\b/i, 'people', 'swap', 2);
+
+// -- stock "AI-sounding" vocabulary
+R(/\bleverag(e|es|ed|ing)\b/i, forms({ e: 'use', es: 'uses', ed: 'used', ing: 'using' }), 'ai');
+R(/\bdelv(e|es|ed|ing) into\b/i, forms({ e: 'look at', es: 'looks at', ed: 'looked at', ing: 'looking at' }), 'ai');
+R(/\bembark(s|ed|ing)? on\b/i, g => ({ '': 'start', s: 'starts', ed: 'started', ing: 'starting' })[(g[0] || '').toLowerCase()], 'ai');
+R(/\bnavigat(e|es|ed|ing) the (?:complexities|intricacies|landscape|nuances) of\b/i, forms({ e: 'deal with', es: 'deals with', ed: 'dealt with', ing: 'dealing with' }), 'ai');
+R(/\belevat(e|es|ed|ing)\b/i, forms({ e: 'improve', es: 'improves', ed: 'improved', ing: 'improving' }), 'ai');
+R(/\b(an?\s+)?seamless\b/i, 'smooth', 'ai', 1, { art: true });
+R(/\bseamlessly\b/i, 'smoothly', 'ai');
+R(/\b(an?\s+)?robust\b/i, ['strong', 'solid', 'reliable'], 'ai', 1, { art: true });
+R(/\b(an?\s+)?(?:cutting-edge|state-of-the-art)\b/i, ['modern', 'up-to-date'], 'ai', 1, { art: true });
+R(/\b(an?\s+)?game-changer\b/i, 'big improvement', 'ai', 1, { art: true });
+R(/\b(an?\s+)?comprehensive\b/i, ['full', 'complete', 'thorough'], 'ai', 1, { art: true });
+R(/\b(an?\s+)?meticulous\b/i, 'careful', 'ai', 1, { art: true });
+R(/\bmeticulously\b/i, 'carefully', 'ai');
+R(/\b(an?\s+)?unparalleled\b/i, ['excellent', 'outstanding'], 'ai', 1, { art: true });
+R(/\b(an?\s+)?world-class\b/i, ['top-quality', 'high-quality'], 'ai', 1, { art: true });
+R(/\b(?:a|an) testament to\b/i, 'proof of', 'ai');
+R(/\bin the realm of\b/i, 'in', 'ai');
+R(/\bever-(?:evolving|changing)\b/i, 'changing', 'ai');
+R(/\bfast-paced\b/i, 'busy', 'ai');
+
+// ---------- text protection ----------
+const TOK_OPEN = '\u0002', TOK_CLOSE = '\u0003', DOT = '\u0001';
+function protect(text, store) {
+  const keep = re => { text = text.replace(re, m => { store.push(m); return TOK_OPEN + (store.length - 1) + TOK_CLOSE; }); };
+  keep(/&(?:#\d+|#x[0-9a-f]+|[a-z][a-z0-9]*);/gi);                       // HTML entities
+  keep(/(?:https?:\/\/|www\.)[^\s<>"']*[^\s<>"'.,;:!?)]/gi);               // URLs
+  keep(/[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}/g);                    // emails
+  keep(/\b\d{1,2}:\d{2}(?:\s?[AaPp]\.?[Mm]\.?)?/g);                        // times
+  text = text.replace(/\b(e\.g|i\.e|vs|mr|mrs|ms|dr|prof|no|approx|est|fig|st|jr|sr)\./gi, m => m.replace(/\./g, DOT));
+  text = text.replace(/\b((?:[ap]\.m)|etc|inc|ltd|co)\.(?!\s+[A-Z])/gi, (m, a) => a.replace(/\./g, DOT) + DOT);
+  text = text.replace(/(\d)\.(\d)/g, '$1' + DOT + '$2');
+  return text;
+}
+function restore(text, store) {
+  const re = new RegExp(TOK_OPEN + '(\\d+)' + TOK_CLOSE, 'g');
+  for (let i = 0; i < 6 && re.test(text); i++) { re.lastIndex = 0; text = text.replace(re, (m, n) => store[+n]); re.lastIndex = 0; } // tokens can nest (entity inside a URL)
+  return text.replace(new RegExp(DOT, 'g'), '.');
+}
+
+// ---------- sentences ----------
+function splitSentences(text) {
+  const out = [];
+  const re = /[^.!?]*[.!?]+["'”’)\]]*\s*|[^.!?]+$/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (m[0] === '') { re.lastIndex++; continue; }
+    const raw = m[0];
+    const body = raw.replace(/\s+$/, '');
+    const ws = raw.slice(body.length);
+    const prev = out[out.length - 1];
+    if (prev && /[.!?]["'”’)\]]*$/.test(prev.text) && /^ ?$/.test(prev.ws) && /^[a-z]/.test(body)) {
+      prev.text += prev.ws + body; prev.ws = ws; // lowercase after a full stop: not a real boundary
+    } else out.push({ text: body, ws: ws });
+  }
+  return out;
+}
+
+// ---------- rule application ----------
+function applyRule(t, rule, ctx, st) {
+  return t.replace(rule.g, function () {
+    const args = Array.prototype.slice.call(arguments);
+    const m = args[0];
+    const offIdx = args.findIndex((a, i) => i > 0 && typeof a === 'number');
+    const g = args.slice(1, offIdx);
+    let to = typeof rule.to === 'function' ? rule.to(g, ctx) : rule.to;
+    if (Array.isArray(to)) {
+      const key = rule.re.source;
+      let i = Math.floor(ctx.rand() * to.length);
+      if (to.length > 1 && ctx.last[key] === i) i = (i + 1) % to.length; // avoid repeating the same pick back to back
+      ctx.last[key] = i;
+      to = to[i];
+    }
+    to = String(to).replace(/\$(\d)/g, (x, n) => g[n - 1] || '');
+    let res = to;
+    if (rule.art) {
+      const art = g[0];
+      res = art ? (startsVowel(to) ? 'an ' : 'a ') + to : to;
+    }
+    res = matchCase(m, res);
+    if (res === m) return m;
+    st[rule.cat] = (st[rule.cat] || 0) + 1;
+    const k = m.trim().toLowerCase() + ' → ' + (res.trim().toLowerCase() || '(removed)');
+    st.log[k] = (st.log[k] || 0) + 1;
+    return res;
+  });
+}
+
+function tidy(t) {
+  return t
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/,\s*,/g, ',')
+    .replace(/^[\s,;:]+/, '')
+    .replace(/([a-z])\s+,/gi, '$1,')
+    .trim();
+}
+function capStart(t) { return t.replace(/^(["'“‘(\[]*)([a-z])/, (m, a, b) => a + b.toUpperCase()); }
+
+// ---------- contractions ----------
+const NEG = { do: "don't", does: "doesn't", did: "didn't", is: "isn't", are: "aren't", was: "wasn't", were: "weren't", has: "hasn't", have: "haven't", had: "hadn't", would: "wouldn't", should: "shouldn't", could: "couldn't" };
+function contract(t, ctx, st) {
+  const p = ctx.pContr, ap = ctx.apos;
+  const go = (re, fn) => { t = t.replace(re, function () {
+    const a = Array.prototype.slice.call(arguments);
+    const m = a[0];
+    if (m === m.toUpperCase() && /[A-Z]{2}/.test(m)) return m;           // leave SHOUTED text alone
+    if (ctx.rand() >= p) return m;
+    const r = fn(a);
+    if (!r) return m;
+    st.contr = (st.contr || 0) + 1;
+    return r.replace(/'/g, ap);
+  }); };
+  go(/\b(do|does|did|is|are|was|were|has|have|had|would|should|could)\s+not\b/gi, a => matchCase(a[0], NEG[a[1].toLowerCase()]));
+  go(/\bwill\s+not\b/gi, a => matchCase(a[0], "won't"));
+  go(/\bcan(?:not|\s+not)\b/gi, a => matchCase(a[0], "can't"));
+  go(/\b(we|you|they)\s+are(?=\s+\S)/gi, a => a[1] + "'re");
+  go(/\b(we|you|they|I|he|she|it|that|there)\s+will(?=\s+\S)/gi, a => a[1] + "'ll");
+  go(/\b(we|you|they|I)\s+would(?=\s+\S)/gi, a => a[1] + "'d");
+  go(/\b(we|you|they|I)\s+have(?=\s+(?:been|received|sent|made|taken|given|done|got|gone|seen|had|\w+ed)\b)/gi, a => a[1] + "'ve");
+  go(/\bI\s+am(?=\s+\S)/g, () => "I'm");
+  go(/\b(it|that|there|here|what|who|he|she)\s+is(?=\s+\S)/gi, a => a[1] + "'s");
+  go(/\blet\s+us\b/gi, a => matchCase(a[0], "let's"));
+  return t;
+}
+
+// ---------- dashes, semicolons, long sentences ----------
+function punct(t, ctx, st) {
+  t = t.replace(/\s*—\s*|\s+--\s+/g, (m, off, str) => {
+    const prev = str.charAt(off - 1), next = str.charAt(off + m.length);
+    if (/\d/.test(prev) || /\d/.test(next)) return m;   // keep ranges like 9:00 — 5:00
+    st.punct = (st.punct || 0) + 1;
+    return ', ';
+  });
+  if (ctx.level >= 3) {
+    t = t.replace(/;\s+(\S)/g, (m, c, off, str) => {
+      const left = str.slice(0, off), right = str.slice(off + m.length - 1);
+      if (wc(left) >= 4 && wc(right) >= 4) { st.punct = (st.punct || 0) + 1; return '. ' + c.toUpperCase(); }
+      return m;
+    });
+  }
+  return t;
+}
+const THRESH = { 1: 34, 2: 26, 3: 20 };
+function splitLong(t, ctx, st, depth) {
+  if (depth > 3 || wc(t) <= THRESH[ctx.level]) return [t];
+  const cands = [];
+  const re = /(,\s+(and|but|so)\s+|;\s+)/g;
+  let m;
+  while ((m = re.exec(t)) !== null) {
+    const left = t.slice(0, m.index), right = t.slice(m.index + m[0].length);
+    const lw = wc(left), rw = wc(right);
+    if (lw >= 7 && rw >= 6) cands.push({ idx: m.index, len: m[0].length, conj: (m[2] || '').toLowerCase(), score: Math.abs(lw - rw) });
+  }
+  if (!cands.length) return [t];
+  cands.sort((a, b) => a.score - b.score);
+  const c = cands.length > 1 && ctx.rand() < 0.25 ? cands[1] : cands[0];
+  const left = t.slice(0, c.idx).replace(/[,;\s]+$/, '') + '.';
+  let right = t.slice(c.idx + c.len);
+  if (c.conj === 'but') right = 'But ' + right;
+  else if (c.conj === 'so') right = 'So ' + right;
+  else if (c.conj === 'and' && ctx.level >= 3 && ctx.rand() < 0.3) right = 'And ' + right;
+  else right = cap(right);
+  st.split = (st.split || 0) + 1;
+  return [left].concat(splitLong(right, ctx, st, depth + 1));
+}
+
+// ---------- one sentence ----------
+function doSentence(t, isStart, ctx, st) {
+  const o = ctx.opts;
+  if (!o.words && !o.filler && !o.contractions && !o.punct && !o.split) return [t];
+  RULES.forEach(rule => {
+    if (rule.level > ctx.level) return;
+    if (rule.start && !isStart) return;
+    if ((rule.cat === 'swap' || rule.cat === 'ai') && !o.words) return;
+    if ((rule.cat === 'filler' || rule.cat === 'transition') && !o.filler) return;
+    t = applyRule(t, rule, ctx, st);
+  });
+  t = tidy(t);
+  if (isStart) t = capStart(t);
+  if (o.punct) t = punct(t, ctx, st);
+  if (o.contractions) t = contract(t, ctx, st);
+  t = tidy(t);
+  if (isStart) t = capStart(t);
+  let pieces = o.split ? splitLong(t, ctx, st, 0) : [t];
+  return pieces;
+}
+
+// ---------- a block of running text ----------
+function doText(text, atStart, ctx, st) {
+  const lead = (text.match(/^\s*/) || [''])[0], trail = (text.match(/\s*$/) || [''])[0];
+  const core = text.trim();
+  if (!core) return text;
+  const store = [];
+  const sents = splitSentences(protect(core, store));
+  const out = [];
+  sents.forEach((s, i) => {
+    const isStart = i === 0 ? atStart : true;
+    let pieces = doSentence(s.text, isStart, ctx, st);
+    if (ctx.tone === 'casual' && i > 0 && pieces.length && ctx.rand() < (ctx.level === 1 ? 0.08 : 0.16) &&
+        /^(We|You|Our|It|This|That|They)\b/.test(pieces[0]) && /^[A-Z][a-z]/.test(pieces[0]) && wc(pieces[0]) >= 6) {
+      const lead2 = ctx.pick(['Honestly, ', 'To be fair, ', 'Truth is, ', 'Simply put, ']);
+      pieces[0] = lead2 + lowFirst(pieces[0]);
+      st.flavor = (st.flavor || 0) + 1;
+    }
+    out.push(pieces.join(' ') + s.ws);
+  });
+  return lead + restore(out.join('').replace(/\s+$/, ''), store) + trail;
+}
+
+// ---------- HTML and plain-text drivers ----------
+const BLOCK = /^(p|div|li|ul|ol|h[1-6]|br|hr|tr|td|th|table|thead|tbody|section|article|blockquote|header|footer|dd|dt|dl|form|nav|main|aside|figure|figcaption)$/i;
+const SKIP = /^(h[1-6]|a|script|style|code|pre|button|textarea|title|select|option|kbd|samp)$/i;
+function doHtml(src, ctx, st) {
+  const parts = src.split(/(<!--[\s\S]*?-->|<[^>]+>)/);
+  let skip = 0, atStart = true;
+  const stack = [];
+  return parts.map(part => {
+    if (!part) return part;
+    if (part.charAt(0) === '<' && !/^<!--/.test(part)) {
+      const m = part.match(/^<\s*(\/)?\s*([a-zA-Z][a-zA-Z0-9]*)/);
+      if (!m) return part;
+      const closing = !!m[1], name = m[2].toLowerCase(), selfClose = /\/\s*>$/.test(part) || /^(br|hr|img|input|meta|link)$/.test(name);
+      if (BLOCK.test(name)) atStart = true;
+      if (SKIP.test(name) && !selfClose) {
+        if (!closing) { stack.push(name); skip++; }
+        else if (stack.lastIndexOf(name) >= 0) { stack.splice(stack.lastIndexOf(name), 1); skip = Math.max(0, skip - 1); }
+      }
+      return part;
+    }
+    if (/^<!--/.test(part)) return part;
+    if (skip > 0 || !part.trim()) { if (part.trim()) atStart = /[.!?]["'”’)]*\s*$/.test(part); return part; }
+    const res = doText(part, atStart, ctx, st);
+    atStart = /[.!?]["'”’)]*\s*$/.test(part.trim());
+    return res;
+  }).join('');
+}
+function doPlain(src, ctx, st) {
+  return src.split('\n').map(line => {
+    if (!line.trim()) return line;
+    const b = line.match(/^(\s*(?:[-*•]|\d+[.)])\s+)/);
+    const prefix = b ? b[1] : '', body = line.slice(prefix.length);
+    if (wc(body) <= 5 && !/[.!?:,;]$/.test(body.trim())) return line;          // headings and labels stay as they are
+    return prefix + doText(body, true, ctx, st);
+  }).join('\n');
+}
+
+// ---------- stats ----------
+function plainOf(s) { return s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&[a-z#0-9]+;/gi, ' '); }
+function syll(w) {
+  w = w.toLowerCase().replace(/[^a-z]/g, '');
+  if (!w) return 0;
+  if (w.length <= 3) return 1;
+  w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '');
+  const m = w.match(/[aeiouy]{1,2}/g);
+  return Math.max(1, m ? m.length : 1);
+}
+function measure(s) {
+  const txt = plainOf(s);
+  const words = txt.match(/[A-Za-z0-9'’-]+/g) || [];
+  const sentences = Math.max(1, txt.split('\n').reduce((n, line) => n + (line.trim() ? splitSentences(protect(line, [])).length : 0), 0));
+  let syl = 0; words.forEach(w => { syl += syll(w); });
+  const nw = words.length;
+  const ease = nw ? Math.round(206.835 - 1.015 * (nw / sentences) - 84.6 * (syl / nw)) : 0;
+  return { words: nw, sentences: sentences, avg: nw ? Math.round(nw / sentences * 10) / 10 : 0, ease: Math.max(0, Math.min(100, ease)) };
+}
+
+// ---------- public ----------
+function humanize(input, opts) {
+  opts = Object.assign({ level: 2, tone: 'friendly', format: 'auto', words: true, filler: true, contractions: true, punct: true, split: true, seed: 1 }, opts || {});
+  const rand = makeRng(opts.seed);
+  const isHtml = opts.format === 'html' || (opts.format === 'auto' && /<\/?(?:p|div|h[1-6]|ul|ol|li|br|strong|em|b|i|a|span|table|section)\b[^>]*>/i.test(input));
+  const curly = /[’]/.test(input) && !/'/.test(input);
+  const pc = { 1: 0.6, 2: 0.9, 3: 1 }[opts.level];
+  const ctx = {
+    opts: opts, level: opts.level, tone: opts.tone, rand: rand, last: {},
+    pContr: opts.tone === 'professional' ? pc * 0.4 : opts.tone === 'casual' ? Math.max(pc, 0.95) : pc,
+    apos: curly ? '’' : "'",
+    pick: arr => arr[Math.floor(rand() * arr.length)]
+  };
+  const st = { log: {} };
+  const before = measure(input);
+  const text = isHtml ? doHtml(input, ctx, st) : doPlain(input, ctx, st);
+  const after = measure(text);
+  const changes = Object.keys(st.log).map(k => ({ what: k, n: st.log[k] })).sort((a, b) => b.n - a.n);
+  return {
+    text: text, html: isHtml, before: before, after: after, changes: changes,
+    counts: { words: (st.swap || 0), ai: (st.ai || 0), filler: (st.filler || 0), transition: (st.transition || 0), contractions: (st.contr || 0), split: (st.split || 0), punct: (st.punct || 0), flavor: (st.flavor || 0) }
+  };
+}
+
+root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var g = function (id) { return document.getElementById(id); };
+  var note = function (m) { try { toast(m); } catch (e) {} };
+  var SUBS = {
+    policy: 'Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.',
+    humanizer: 'Paste your own text and get a more natural, human-sounding rewrite. It runs in your browser and nothing is uploaded.'
+  };
+  var SAMPLE = "In today's fast-paced digital world, it is important to note that shopping online should be seamless. Furthermore, we utilize a robust system to ensure that your order is processed in a timely manner. Prior to shipping, our dedicated team will meticulously inspect each item.\n\nHowever, should you require any additional assistance, please do not hesitate to contact us at support@example.com. We are committed to providing a comprehensive range of products, and we strive to deliver them within 3-5 business days; this is a testament to our commitment to customer satisfaction.\n\nIn conclusion, we are pleased to serve you and look forward to your next order.";
+
+  // ----- switching between the two sections -----
+  function showView(v, remember) {
+    if (v !== 'humanizer') v = 'policy';
+    g('view-policy').hidden = v !== 'policy';
+    g('view-humanizer').hidden = v !== 'humanizer';
+    Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
+    g('hdrSub').textContent = SUBS[v];
+    if (remember) {
+      try { localStorage.setItem('policyGenView', v); } catch (e) {}
+      try { history.replaceState(null, '', v === 'policy' ? location.pathname + location.search : '#humanizer'); } catch (e) {}
+    }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) { b.onclick = function () { showView(b.getAttribute('data-view'), true); }; });
+  var startView = 'policy';
+  try { startView = localStorage.getItem('policyGenView') || 'policy'; } catch (e) {}
+  if (location.hash === '#humanizer') startView = 'humanizer';
+  showView(startView, false);
+
+  // ----- helpers -----
+  function fnv(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h | 0; }
+  function words(s) { var m = s.replace(/<[^>]*>/g, ' ').match(/\S+/g); return m ? m.length : 0; }
+  function sanitize(html) {
+    var doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+    var root = doc.body.firstChild;
+    root.querySelectorAll('script,style,iframe,object,embed,link,meta,form,base,noscript,img,video,audio,source,svg').forEach(function (n) { n.remove(); });
+    root.querySelectorAll('*').forEach(function (el) {
+      Array.prototype.slice.call(el.attributes).forEach(function (a) {
+        var n = a.name.toLowerCase();
+        if (n.indexOf('on') === 0 || n === 'srcdoc' || n === 'style' || (/^(href|src|xlink:href|action|formaction)$/.test(n) && /^\s*(javascript|data|vbscript):/i.test(a.value))) el.removeAttribute(a.name);
+      });
+      if (el.tagName === 'A') { el.setAttribute('target', '_blank'); el.setAttribute('rel', 'noopener noreferrer'); }
+    });
+    return root.innerHTML;
+  }
+  function htmlToText(html) {
+    var doc = new DOMParser().parseFromString('<div>' + html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|li|h[1-6]|div|tr)>/gi, '$&\n') + '</div>', 'text/html');
+    return doc.body.textContent.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  var lastHtml = false, variant = 0;
+
+  function readOpts() {
+    return {
+      level: parseInt(g('hzLevel').value, 10), tone: g('hzTone').value, format: g('hzFormat').value,
+      words: g('hzWords').checked, filler: g('hzFiller').checked, contractions: g('hzContr').checked,
+      split: g('hzSplit').checked, punct: g('hzPunct').checked
+    };
+  }
+  function chip(txt) { var s = document.createElement('span'); s.className = 'chip'; s.textContent = txt; return s; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+  function run() {
+    var src = g('hzIn').value;
+    if (!src.trim()) { note('Paste some text first'); return; }
+    var o = readOpts();
+    var fmt = o.format === 'text' ? 'text' : o.format;
+    o.format = fmt;
+    o.seed = fnv(src + '|' + o.level + o.tone) + variant * 7919;
+    var r;
+    try { r = Humanizer.humanize(src, o); } catch (e) { note('Sorry, something in that text could not be processed'); return; }
+    lastHtml = r.html;
+    g('hzOut').value = r.text;
+    // stats
+    var st = g('hzStats'); st.innerHTML = '';
+    st.appendChild(chip(r.before.words + ' → ' + r.after.words + ' words'));
+    st.appendChild(chip('Avg sentence ' + r.before.avg + ' → ' + r.after.avg + ' words'));
+    st.appendChild(chip('Reading ease ' + r.before.ease + ' → ' + r.after.ease));
+    var c = r.counts;
+    if (c.words + c.ai) st.appendChild(chip(plural(c.words + c.ai, 'stiff word or phrase swapped', 'stiff words or phrases swapped')));
+    if (c.filler) st.appendChild(chip(plural(c.filler, 'filler phrase cut', 'filler phrases cut')));
+    if (c.transition) st.appendChild(chip(plural(c.transition, 'stiff connector replaced', 'stiff connectors replaced')));
+    if (c.contractions) st.appendChild(chip(plural(c.contractions, 'contraction added', 'contractions added')));
+    if (c.split) st.appendChild(chip(plural(c.split, 'long sentence split', 'long sentences split')));
+    if (c.punct) st.appendChild(chip(plural(c.punct, 'dash or semicolon tidied', 'dashes or semicolons tidied')));
+    if (c.flavor) st.appendChild(chip(plural(c.flavor, 'casual opener added', 'casual openers added')));
+    // change list
+    var cl = g('hzChanges'); cl.innerHTML = '';
+    if (r.changes.length) {
+      var ul = document.createElement('ul'); ul.className = 'hzlist';
+      r.changes.slice(0, 25).forEach(function (x) { var li = document.createElement('li'); li.textContent = x.what + (x.n > 1 ? '  (×' + x.n + ')' : ''); ul.appendChild(li); });
+      cl.appendChild(ul);
+      if (r.changes.length > 25) { var more = document.createElement('div'); more.className = 'hint'; more.textContent = '…and ' + (r.changes.length - 25) + ' more.'; cl.appendChild(more); }
+    }
+    g('hzChangesWrap').hidden = !r.changes.length;
+    // preview + buttons
+    g('hzPrevWrap').hidden = !r.html;
+    if (r.html) g('hzPreview').innerHTML = sanitize(r.text);
+    g('hzCopyTxt').hidden = !r.html;
+    g('hzDl').textContent = r.html ? 'Download .html' : 'Download .txt';
+    if (r.text === src) note('This already reads naturally. Try a stronger setting.');
+    saveHz();
+  }
+
+  // ----- save / restore -----
+  var IDS = ['hzIn', 'hzLevel', 'hzTone', 'hzFormat'], CHK = ['hzWords', 'hzFiller', 'hzContr', 'hzSplit', 'hzPunct'];
+  function saveHz() { try { var o = {}; IDS.forEach(function (i) { o[i] = g(i).value; }); CHK.forEach(function (i) { o[i] = g(i).checked; }); localStorage.setItem('policyGenHZ1', JSON.stringify(o)); } catch (e) {} }
+  function loadHz() { try { var o = JSON.parse(localStorage.getItem('policyGenHZ1') || 'null'); if (!o) return; IDS.forEach(function (i) { if (o[i] !== undefined) g(i).value = o[i]; }); CHK.forEach(function (i) { if (o[i] !== undefined) g(i).checked = !!o[i]; }); } catch (e) {} }
+  loadHz();
+
+  function count() { var n = words(g('hzIn').value); g('hzInCount').textContent = n + (n === 1 ? ' word' : ' words'); }
+  g('hzIn').addEventListener('input', function () { count(); variant = 0; });
+  g('hzIn').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); variant = 0; run(); } });
+  count();
+
+  g('hzGo').onclick = function () { variant = 0; run(); };
+  g('hzAgain').onclick = function () { variant++; run(); };
+  g('hzSample').onclick = function () { g('hzIn').value = SAMPLE; variant = 0; count(); run(); };
+  g('hzClear').onclick = function () {
+    g('hzIn').value = ''; g('hzOut').value = ''; g('hzStats').innerHTML = ''; g('hzChanges').innerHTML = '';
+    g('hzChangesWrap').hidden = true; g('hzPrevWrap').hidden = true; g('hzCopyTxt').hidden = true; variant = 0; count(); saveHz();
+  };
+  g('hzCopy').onclick = function () { var v = g('hzOut').value; if (!v.trim()) { note('Nothing to copy yet'); return; } copy(v, lastHtml ? 'HTML copied' : 'Text copied'); };
+  g('hzCopyTxt').onclick = function () { var v = g('hzOut').value; if (!v.trim()) { note('Nothing to copy yet'); return; } copy(htmlToText(v), 'Plain text copied'); };
+  g('hzDl').onclick = function () {
+    var v = g('hzOut').value; if (!v.trim()) { note('Nothing to download yet'); return; }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([v], { type: lastHtml ? 'text/html' : 'text/plain' }));
+    a.download = 'humanized-text' + (lastHtml ? '.html' : '.txt'); a.click();
+  };
+  g('hzReuse').onclick = function () { var v = g('hzOut').value; if (!v.trim()) { note('Nothing to reuse yet'); return; } g('hzIn').value = v; variant = 0; count(); note('Moved to the input box'); };
+  CHK.concat(['hzLevel', 'hzTone', 'hzFormat']).forEach(function (i) { g(i).addEventListener('change', saveHz); });
+})();
+
 </script>
 </body>
 </html>
