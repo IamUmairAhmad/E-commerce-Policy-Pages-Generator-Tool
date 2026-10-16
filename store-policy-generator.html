@@ -101,7 +101,8 @@ details summary{cursor:pointer;font-size:13px;font-weight:600}
     <h2 style="margin-top:22px">Location &amp; currency</h2>
     <label>Shipping &amp; Refund Country *</label>
     <select id="countries"></select>
-    <div class="hint">Countries supported by Google Merchant Center. Also used as the governing law and dispute-resolution location.</div>
+    <input id="countries_in" placeholder="Type your country, e.g. Pakistan" style="display:none;margin-top:6px">
+    <div class="hint">Countries supported by Google Merchant Center (pick "Other country" if yours is not listed, for example Pakistan, and choose the currency below). Also used as the governing law and dispute-resolution location.</div>
     <label>Currency <small>(auto-selected from the country, change it if you need)</small></label>
     <select id="currency"></select>
     <input id="currency_in" placeholder="Currency code, e.g. PKR" style="display:none;margin-top:6px">
@@ -218,6 +219,7 @@ details summary{cursor:pointer;font-size:13px;font-weight:600}
       <label><input type="checkbox" id="hzContr" checked> Use contractions</label>
       <label><input type="checkbox" id="hzSplit" checked> Break up long sentences</label>
       <label><input type="checkbox" id="hzPunct" checked> Tidy dashes and semicolons</label>
+      <label><input type="checkbox" id="hzRhythm" checked> Vary sentence rhythm and openers</label>
     </div>
     <div class="bar">
       <button class="p" id="hzGo" type="button">Humanize</button>
@@ -297,7 +299,7 @@ const COMBOS = {
   methods:{label:'Shipping Methods',ph:'e.g. Standard, Express',opts:['Standard','Express']}
 };
 const COMBO_IDS = Object.keys(COMBOS);
-const FIELDS = ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','countries','currency','currency_in','otherPay','cutoff','shipcost','carriers','restrictions','acceptReturns','exchanges','condition','retLabel','restockType','restockAmt'];
+const FIELDS = ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','countries','countries_in','currency','currency_in','otherPay','cutoff','shipcost','carriers','restrictions','acceptReturns','exchanges','condition','retLabel','restockType','restockAmt'];
 
 // ================= BUILD FORM CONTROLS =================
 COMBO_IDS.forEach(id=>{
@@ -307,7 +309,7 @@ COMBO_IDS.forEach(id=>{
   <input id="${id}_in" placeholder="${c.ph}" style="display:none">`;
 });
 $('tz').innerHTML = '<option value="">Select time zone</option>' + TIMEZONES.map(t=>`<option>${t}</option>`).join('');
-$('countries').innerHTML = '<option value="">Select country</option>' + COUNTRIES.map(([n])=>`<option>${n}</option>`).join('');
+$('countries').innerHTML = '<option value="">Select country</option>' + COUNTRIES.map(([n])=>`<option>${n}</option>`).join('') + '<option value="__custom">Other country (not on Google\'s list)</option>';
 (function(){
   const fmt = (h,m)=>{ const ap = h<12?'AM':'PM'; const hh = h%12===0?12:h%12; return hh+':'+String(m).padStart(2,'0')+' '+ap; };
   let o = '<option value="">Select cut-off time</option>';
@@ -396,7 +398,7 @@ function getData(){
   const raw = {}; ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','cutoff','shipcost','carriers','restrictions'].forEach(f=>raw[f]=g(f));
   const hours = comboVal('hours'), cancel = comboVal('cancel'), handlingRaw = comboVal('handling'), transitRaw = comboVal('transit'), methods = comboVal('methods');
   const days = dayNames(hours);
-  const country = g('countries');
+  const country = $('countries').value==='__custom' ? g('countries_in') : g('countries');
   const cur = currencyVal();
   const e = {};
   e.businessName = esc(raw.businessName || 'our store');
@@ -490,6 +492,7 @@ function refundInfo(d){
     custom: `Once approved, your refund will be processed within ${t} via ${d.refundMethodText}${cur}.`
   })[d.refKey];
   s += ' ' + REFUND_NOTE;
+  if(d.cod && (d.refKey === 'original' || d.refKey === 'partial')) s += ` Orders paid with Cash on Delivery have no card to send money back to, so we refund those by bank transfer. We will send you an email only from ${emailLink(d)} to ask for your bank details.`;
   if(d.refKey === 'bank') s += ` We will send you an email only from ${emailLink(d)} to ask for your bank details to process the refund.`;
   return s;
 }
@@ -831,6 +834,8 @@ function refreshUI(){
   const mode = $('acceptReturns').value;
   $('retWrap').style.display = mode==='none' ? 'none' : '';
   $('combo_refundMethod').style.display = mode==='none' ? 'none' : '';
+  $('combo_refundTime').style.display = mode==='none' ? 'none' : '';
+  $('countries_in').style.display = $('countries').value==='__custom' ? '' : 'none';
   $('condWrap').style.display = mode==='all' ? '' : 'none';
   $('restockWrap').style.display = mode==='all' ? '' : 'none';
   $('labelWrap').style.display = [...document.querySelectorAll('#retMethods input')].some(c=>c.value==='mail' && c.checked) ? '' : 'none';
@@ -848,6 +853,8 @@ $('countries').addEventListener('change', ()=>{
   if(c) $('currency').value = c[1];
   refreshUI();
 });
+const EXTRA_COUNTRY_CUR = {pakistan:'PKR',china:'CNY',qatar:'QAR',bangladesh:'BDT','sri lanka':'LKR',morocco:'MAD',algeria:'DZD',tunisia:'TND'};
+$('countries_in').addEventListener('input', ()=>{ const c = EXTRA_COUNTRY_CUR[$('countries_in').value.trim().toLowerCase()]; if(c && !$('currency').value) $('currency').value = c; });
 document.addEventListener('input', refreshUI);
 document.addEventListener('change', refreshUI);
 
@@ -1037,6 +1044,59 @@ R(/\bin the realm of\b/i, 'in', 'ai');
 R(/\bever-(?:evolving|changing)\b/i, 'changing', 'ai');
 R(/\bfast-paced\b/i, 'busy', 'ai');
 
+// -- more stock phrases and brochure wording
+R(/\brest assured,?\s*(?:that\s+)?/i, ['you can count on it: ', 'know that '], 'filler', 2);
+R(/\bat the end of the day,?\s*/i, ['in the end, ', 'really, '], 'filler');
+R(/\bwhen it comes to\b/i, ['for', 'with'], 'swap');
+R(/\bthe fact that\b/i, 'that', 'swap', 2);
+R(/\ba (?:myriad|multitude) of\b/i, ['lots of', 'plenty of'], 'ai');
+R(/\ba wealth of\b/i, ['plenty of', 'lots of'], 'ai');
+R(/\ba variety of\b/i, ['different', 'all kinds of', 'many'], 'swap', 2);
+R(/\b(?:customer satisfaction|your satisfaction|satisfaction) is (?:our|my) (?:top|number one|first|highest|main|utmost) priority\b/i, ['we want you to be happy with what you buy', 'keeping you happy comes first for us'], 'filler', 2);
+R(/\b(is|are) (?:committed|dedicated|devoted) to (provid|offer|deliver)ing\b/i, g => (g[0].toLowerCase() === 'is' ? 'aims' : 'aim') + ' to ' + ({ provid: 'provide', offer: 'offer', deliver: 'deliver' })[g[1].toLowerCase()], 'filler', 2);
+R(/\b(is|are) (?:currently )?in the process of (\w+ing)\b/i, '$1 $2', 'swap', 2);
+R(/\b(?:we|i) take (?:great |immense |enormous )?pride in\b/i, g => ["we're proud of", 'we care about'], 'filler', 2);
+R(/\b(serves?|stands?) as (an? |the )/i, g => (/s$/i.test(g[0]) ? 'is ' : 'are ') + g[1], 'swap', 2);
+R(/\bboast(s)?\b(?=\s+(?:an?|the|over|more|\d))/i, g => g[0] ? 'has' : 'have', 'ai', 2);
+R(/\b(plays?) an? (?:crucial|vital|key|pivotal|significant|important|critical) role in\b/i, g => /s$/i.test(g[0]) ? 'is a big part of' : 'are a big part of', 'ai', 2);
+R(/\b(?:crafted|designed|curated) with (?:care|love|passion|precision) and (?:care|attention|passion|precision|love)\b/i, ['made with care', 'made carefully'], 'ai', 2);
+R(/\bunlock(s|ed|ing)? (?:the )?(?:full )?(?:potential|power)\b/i, 'get more out of it', 'ai', 2);
+R(/\bunleash(es|ed|ing)?\b/i, g => ({ '': 'use', es: 'uses', ed: 'used', ing: 'using' })[(g[0] || '').toLowerCase()], 'ai', 2);
+R(/\b(?:take|takes|took|taking) (?:your|their|our) (?:\w+ )?to the next level\b/i, 'improve', 'ai', 2);
+R(/\bresid(e|es|ed|ing)\b(?!\s+in\b)/i, forms({ e: 'live', es: 'lives', ed: 'lived', ing: 'living' }), 'swap', 2);
+R(/\bacquir(e|es|ed|ing)\b/i, forms({ e: 'get', es: 'gets', ed: 'got', ing: 'getting' }), 'swap', 2);
+R(/\bmodif(y|ies|ied|ying)\b/i, forms({ y: 'change', ies: 'changes', ied: 'changed', ying: 'changing' }), 'swap', 2);
+R(/\bindicat(e|es|ed|ing)\b/i, forms({ e: 'show', es: 'shows', ed: 'showed', ing: 'showing' }), 'swap', 2);
+R(/\bpossess(es|ed|ing)?\b/i, g => ({ '': 'have', es: 'has', ed: 'had', ing: 'having' })[(g[0] || '').toLowerCase()], 'swap', 2);
+R(/\btransmit(s|ted|ting)?\b/i, g => ({ '': 'send', s: 'sends', ted: 'sent', ting: 'sending' })[(g[0] || '').toLowerCase()], 'swap', 2);
+R(/\breimburs(e|es|ed|ing)\b/i, forms({ e: 'pay back', es: 'pays back', ed: 'paid back', ing: 'paying back' }), 'swap', 2);
+R(/\blocat(e|es|ing)(?=\s+(?:the|a|an|your|our|it|them)\b)/i, forms({ e: 'find', es: 'finds', ing: 'finding' }), 'swap', 2);
+R(/\bthe remainder of\b/i, 'the rest of', 'swap');
+R(/\bthe initial\b/i, 'the first', 'swap', 2);
+R(/\bextremely\b/i, ['really', 'very'], 'swap', 2);
+R(/\bexceptional(ly)?\b/i, g => g[0] ? 'really' : ['excellent', 'outstanding'], 'ai', 3);
+R(/\b(?:top-notch|first-class|best-in-class)\b/i, ['very good', 'high-quality'], 'ai', 3);
+R(/\bcutting edge\b/i, 'modern', 'ai');
+R(/\bstate of the art\b/i, 'modern', 'ai');
+R(/\bholistic(?:ally)?\b/i, 'complete', 'ai', 3);
+R(/\bsynerg(?:y|ies)\b/i, 'teamwork', 'ai', 3);
+R(/\bpivotal\b/i, 'key', 'ai', 2);
+R(/\bparamount\b/i, 'very important', 'ai', 2);
+R(/\bendeavours?\b/i, 'effort', 'swap', 3);
+R(/\bmyriad\b/i, 'many', 'ai', 2);
+R(/\bfoster(s|ed|ing)?\b/i, g => ({ '': 'build', s: 'builds', ed: 'built', ing: 'building' })[(g[0] || '').toLowerCase()], 'ai', 3);
+R(/\bshowcas(e|es|ed|ing)\b/i, forms({ e: 'show', es: 'shows', ed: 'showed', ing: 'showing' }), 'ai', 2);
+R(/\bcater(s|ed|ing)? to\b/i, g => ({ '': 'serve', s: 'serves', ed: 'served', ing: 'serving' })[(g[0] || '').toLowerCase()], 'ai', 3);
+
+// -- passive voice -> active, only when the writer already speaks as "we" (see ctx.firstPerson)
+const PASSIVE_V = { processed: 'process', shipped: 'ship', dispatched: 'dispatch', refunded: 'refund', sent: 'send', delivered: 'deliver', packed: 'pack', reviewed: 'review', inspected: 'inspect', issued: 'issue', approved: 'approve', confirmed: 'confirm', checked: 'check' };
+R(/^((?:your|all|the|our)\s+)?(orders?|items?|products?|packages?|parcels?|refunds?|returns?|requests?|payments?)\s+(are|is|will be|can be|may be)\s+(processed|shipped|dispatched|refunded|sent|delivered|packed|reviewed|inspected|issued|approved|confirmed|checked)\s+(?=within\b|in\b|after\b|once\b|before\b|on\b|to\b|from\b)/i,
+  (g, c) => {
+    if (!c.firstPerson) return null;
+    const mod = { 'are': 'We ', 'is': 'We ', 'will be': "We'll ", 'can be': 'We can ', 'may be': 'We may ' }[g[2].toLowerCase()];
+    return mod + PASSIVE_V[g[3].toLowerCase()] + ' ' + (g[0] ? g[0].toLowerCase() : '') + g[1].toLowerCase() + ' ';
+  }, 'voice', 2, { start: true });
+
 // ---------- text protection ----------
 const TOK_OPEN = '\u0002', TOK_CLOSE = '\u0003', DOT = '\u0001';
 function protect(text, store) {
@@ -1082,6 +1142,8 @@ function applyRule(t, rule, ctx, st) {
     const offIdx = args.findIndex((a, i) => i > 0 && typeof a === 'number');
     const g = args.slice(1, offIdx);
     let to = typeof rule.to === 'function' ? rule.to(g, ctx) : rule.to;
+    if (to === null || to === undefined) return m;
+    if (rule.cat === 'transition' && ctx.first) to = '';   // a connector makes no sense at the very start of a text block
     if (Array.isArray(to)) {
       const key = rule.re.source;
       let i = Math.floor(ctx.rand() * to.length);
@@ -1160,15 +1222,16 @@ function punct(t, ctx, st) {
   return t;
 }
 const THRESH = { 1: 34, 2: 26, 3: 20 };
-function splitLong(t, ctx, st, depth) {
-  if (depth > 3 || wc(t) <= THRESH[ctx.level]) return [t];
+function splitLong(t, ctx, st, depth, force) {
+  if (depth > 3 || (!force && wc(t) <= THRESH[ctx.level])) return [t];
+  const minL = force ? 5 : 7, minR = force ? 5 : 6;
   const cands = [];
   const re = /(,\s+(and|but|so)\s+|;\s+)/g;
   let m;
   while ((m = re.exec(t)) !== null) {
     const left = t.slice(0, m.index), right = t.slice(m.index + m[0].length);
     const lw = wc(left), rw = wc(right);
-    if (lw >= 7 && rw >= 6) cands.push({ idx: m.index, len: m[0].length, conj: (m[2] || '').toLowerCase(), score: Math.abs(lw - rw) });
+    if (lw >= minL && rw >= minR) cands.push({ idx: m.index, len: m[0].length, conj: (m[2] || '').toLowerCase(), score: Math.abs(lw - rw) });
   }
   if (!cands.length) return [t];
   cands.sort((a, b) => a.score - b.score);
@@ -1180,20 +1243,24 @@ function splitLong(t, ctx, st, depth) {
   else if (c.conj === 'and' && ctx.level >= 3 && ctx.rand() < 0.3) right = 'And ' + right;
   else right = cap(right);
   st.split = (st.split || 0) + 1;
-  return [left].concat(splitLong(right, ctx, st, depth + 1));
+  return force ? [left, right] : [left].concat(splitLong(right, ctx, st, depth + 1, false));
 }
 
 // ---------- one sentence ----------
 function doSentence(t, isStart, ctx, st) {
   const o = ctx.opts;
-  if (!o.words && !o.filler && !o.contractions && !o.punct && !o.split) return [t];
+  const edits = o.words || o.filler || o.contractions || o.punct || o.split;
+  if (!edits && !o.rhythm) return [t];
   RULES.forEach(rule => {
+    if (!edits && rule.cat !== 'voice') return;      // only the rhythm option is on: touch nothing but passive voice
     if (rule.level > ctx.level) return;
     if (rule.start && !isStart) return;
     if ((rule.cat === 'swap' || rule.cat === 'ai') && !o.words) return;
     if ((rule.cat === 'filler' || rule.cat === 'transition') && !o.filler) return;
+    if (rule.cat === 'voice' && !o.rhythm) return;
     t = applyRule(t, rule, ctx, st);
   });
+  if (!edits) return [t];
   t = tidy(t);
   if (isStart) t = capStart(t);
   if (o.punct) t = punct(t, ctx, st);
@@ -1204,6 +1271,46 @@ function doSentence(t, isStart, ctx, st) {
   return pieces;
 }
 
+// ---------- rhythm: how the sentences sit next to each other ----------
+const SUBJ = /^(We|Our|You|Your|It|They|This|That|These|Those|There|My)\b/;
+const REPEAT_OK = /^(We|Our|You|Your|It|This|They)$/;
+const firstWord = s => (s.match(/^["'“‘(\[]*([A-Za-z']+)/) || [0, ''])[1];
+function rhythm(items, ctx, st) {
+  // items: [{ t: sentence text, ws: trailing whitespace }]; works on already-edited sentences
+  if (items.length < 2 || ctx.level < 2) return items;
+  const lvlP = ctx.level === 3 ? 0.7 : 0.45;
+  // 1. join two short, related sentences ("We ship fast. We pack carefully." -> "We ship fast, and we pack carefully.")
+  const out = [];
+  for (let i = 0; i < items.length; i++) {
+    const a = items[i], b = items[i + 1];
+    if (b && !a.joined && /\.$/.test(a.t) && !/\b(?:etc|e\.g|i\.e)\.$/i.test(a.t) && wc(a.t) <= 8 && wc(b.t) <= 8 && wc(a.t) + wc(b.t) <= 15 &&
+        SUBJ.test(a.t) && SUBJ.test(b.t) && /^ ?$/.test(a.ws) && !/[:?!]/.test(a.t) && !/[\u0002\u0003]/.test(b.t.slice(0, 3)) && ctx.rand() < lvlP) {
+      const joiner = ctx.pick([', and ', ', and ', ', and ', ' and ']);
+      out.push({ t: a.t.replace(/\.$/, '') + joiner.replace(/^ and $/, ', and ') + lowFirst(b.t), ws: b.ws, joined: true });
+      st.rhythm = (st.rhythm || 0) + 1; st.log['joined two short sentences'] = (st.log['joined two short sentences'] || 0) + 1;
+      i++;
+    } else out.push(a);
+  }
+  // 2. three sentences in a row starting with the same word: reword the third opener
+  for (let i = 2; i < out.length; i++) {
+    const w0 = firstWord(out[i].t), w1 = firstWord(out[i - 1].t), w2 = firstWord(out[i - 2].t);
+    if (w0 && w0 === w1 && w1 === w2 && REPEAT_OK.test(w0) && wc(out[i].t) >= 5 && ctx.rand() < 0.85) {
+      const lead = ctx.pick(['Also, ', 'On top of that, ', 'Besides that, ', 'Beyond that, ']);
+      out[i].t = lead + lowFirst(out[i].t);
+      st.rhythm = (st.rhythm || 0) + 1; st.log['varied a repeated sentence opener'] = (st.log['varied a repeated sentence opener'] || 0) + 1;
+    }
+  }
+  // 3. a run of equally long sentences sounds machine-made: break the middle one
+  for (let i = 1; i < out.length - 1; i++) {
+    const L = [wc(out[i - 1].t), wc(out[i].t), wc(out[i + 1].t)];
+    if (Math.min.apply(null, L) >= 13 && Math.max.apply(null, L) - Math.min.apply(null, L) <= 5 && ctx.rand() < (ctx.level === 3 ? 0.9 : 0.6)) {
+      const parts = splitLong(out[i].t, ctx, st, 0, true);
+      if (parts.length > 1) { out[i].t = parts.join(' '); st.rhythm = (st.rhythm || 0) + 1; st.log['broke up an even run of long sentences'] = (st.log['broke up an even run of long sentences'] || 0) + 1; i++; }
+    }
+  }
+  return out;
+}
+
 // ---------- a block of running text ----------
 function doText(text, atStart, ctx, st) {
   const lead = (text.match(/^\s*/) || [''])[0], trail = (text.match(/\s*$/) || [''])[0];
@@ -1211,19 +1318,22 @@ function doText(text, atStart, ctx, st) {
   if (!core) return text;
   const store = [];
   const sents = splitSentences(protect(core, store));
-  const out = [];
+  let items = [];
   sents.forEach((s, i) => {
     const isStart = i === 0 ? atStart : true;
+    ctx.first = i === 0 && atStart;
     let pieces = doSentence(s.text, isStart, ctx, st);
-    if (ctx.tone === 'casual' && i > 0 && pieces.length && ctx.rand() < (ctx.level === 1 ? 0.08 : 0.16) &&
+    ctx.first = false;
+    if (ctx.tone === 'casual' && !ctx.legal && i > 0 && pieces.length && ctx.rand() < (ctx.level === 1 ? 0.08 : 0.16) &&
         /^(We|You|Our|It|This|That|They)\b/.test(pieces[0]) && /^[A-Z][a-z]/.test(pieces[0]) && wc(pieces[0]) >= 6) {
       const lead2 = ctx.pick(['Honestly, ', 'To be fair, ', 'Truth is, ', 'Simply put, ']);
       pieces[0] = lead2 + lowFirst(pieces[0]);
       st.flavor = (st.flavor || 0) + 1;
     }
-    out.push(pieces.join(' ') + s.ws);
+    items.push({ t: pieces.join(' '), ws: s.ws });
   });
-  return lead + restore(out.join('').replace(/\s+$/, ''), store) + trail;
+  if (ctx.opts.rhythm) items = rhythm(items, ctx, st);
+  return lead + restore(items.map(x => x.t + x.ws).join('').replace(/\s+$/, ''), store) + trail;
 }
 
 // ---------- HTML and plain-text drivers ----------
@@ -1273,6 +1383,12 @@ function syll(w) {
   const m = w.match(/[aeiouy]{1,2}/g);
   return Math.max(1, m ? m.length : 1);
 }
+// phrases that read as written-by-a-template; counted before and after so the change is visible
+const TELLS = [/\b(?:delve|tapestry|testament|realm|leverage[sd]?|leveraging|seamless(?:ly)?|robust|elevate[sd]?|unlock(?:s|ed|ing)?|unleash(?:es|ed|ing)?|embark(?:s|ed|ing)?|plethora|myriad|multitude|holistic|synerg\w+|pivotal|paramount|meticulous(?:ly)?|unparalleled|cutting-edge|state-of-the-art|world-class|game-changer)\b/gi,
+  /\b(?:furthermore|moreover|additionally|consequently|nevertheless|nonetheless|in conclusion|in summary|to summarize)\b/gi,
+  /\bit is (?:important|essential|crucial|vital|worth) (?:to )?(?:note|noting|mention|mentioning|remember)\b/gi,
+  /\bin today['’]s [\w -]{2,30}?(?:world|age|era|landscape|market)\b/gi, /\bin order to\b|\bprior to\b|\butili[sz]e\b/gi, /—/g];
+function tells(s) { const t = plainOf(s); let n = 0; TELLS.forEach(re => { const m = t.match(re); if (m) n += m.length; }); return n; }
 function measure(s) {
   const txt = plainOf(s);
   const words = txt.match(/[A-Za-z0-9'’-]+/g) || [];
@@ -1280,18 +1396,25 @@ function measure(s) {
   let syl = 0; words.forEach(w => { syl += syll(w); });
   const nw = words.length;
   const ease = nw ? Math.round(206.835 - 1.015 * (nw / sentences) - 84.6 * (syl / nw)) : 0;
-  return { words: nw, sentences: sentences, avg: nw ? Math.round(nw / sentences * 10) / 10 : 0, ease: Math.max(0, Math.min(100, ease)) };
+  // sentence-length variety: standard deviation of words per sentence (people mix short and long; templates stay even)
+  const lens = [];
+  txt.split('\n').forEach(line => { if (line.trim()) splitSentences(protect(line, [])).forEach(x => { const n = wc(x.text); if (n) lens.push(n); }); });
+  let spread = 0;
+  if (lens.length > 1) { const mean = lens.reduce((a, b) => a + b, 0) / lens.length; spread = Math.sqrt(lens.reduce((a, b) => a + (b - mean) * (b - mean), 0) / lens.length); }
+  return { words: nw, sentences: sentences, avg: nw ? Math.round(nw / sentences * 10) / 10 : 0, ease: Math.max(0, Math.min(100, ease)), spread: Math.round(spread * 10) / 10, tells: tells(s) };
 }
 
 // ---------- public ----------
 function humanize(input, opts) {
-  opts = Object.assign({ level: 2, tone: 'friendly', format: 'auto', words: true, filler: true, contractions: true, punct: true, split: true, seed: 1 }, opts || {});
+  opts = Object.assign({ level: 2, tone: 'friendly', format: 'auto', words: true, filler: true, contractions: true, punct: true, split: true, rhythm: true, seed: 1 }, opts || {});
   const rand = makeRng(opts.seed);
   const isHtml = opts.format === 'html' || (opts.format === 'auto' && /<\/?(?:p|div|h[1-6]|ul|ol|li|br|strong|em|b|i|a|span|table|section)\b[^>]*>/i.test(input));
   const curly = /[’]/.test(input) && !/'/.test(input);
   const pc = { 1: 0.6, 2: 0.9, 3: 1 }[opts.level];
   const ctx = {
     opts: opts, level: opts.level, tone: opts.tone, rand: rand, last: {},
+    firstPerson: /\b(?:we|our|us|we're|we'll|we've)\b/i.test(input),
+    legal: /\b(?:governing law|jurisdiction|liabilit\w*|indemnif\w*|arbitration|hereby|terms (?:and|&) conditions|privacy policy|refund policy|binding|disclaimer)\b/i.test(input),
     pContr: opts.tone === 'professional' ? pc * 0.4 : opts.tone === 'casual' ? Math.max(pc, 0.95) : pc,
     apos: curly ? '’' : "'",
     pick: arr => arr[Math.floor(rand() * arr.length)]
@@ -1301,9 +1424,11 @@ function humanize(input, opts) {
   const text = isHtml ? doHtml(input, ctx, st) : doPlain(input, ctx, st);
   const after = measure(text);
   const changes = Object.keys(st.log).map(k => ({ what: k, n: st.log[k] })).sort((a, b) => b.n - a.n);
+  const notes = [];
+  if (opts.tone === 'casual' && ctx.legal) notes.push('This reads like legal or policy text, so casual openers were skipped. Casual wording does not belong in terms or policies.');
   return {
-    text: text, html: isHtml, before: before, after: after, changes: changes,
-    counts: { words: (st.swap || 0), ai: (st.ai || 0), filler: (st.filler || 0), transition: (st.transition || 0), contractions: (st.contr || 0), split: (st.split || 0), punct: (st.punct || 0), flavor: (st.flavor || 0) }
+    text: text, html: isHtml, notes: notes, before: before, after: after, changes: changes,
+    counts: { words: (st.swap || 0), ai: (st.ai || 0), filler: (st.filler || 0), transition: (st.transition || 0), contractions: (st.contr || 0), split: (st.split || 0), punct: (st.punct || 0), flavor: (st.flavor || 0), rhythm: (st.rhythm || 0), voice: (st.voice || 0) }
   };
 }
 
@@ -1366,7 +1491,7 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     return {
       level: parseInt(g('hzLevel').value, 10), tone: g('hzTone').value, format: g('hzFormat').value,
       words: g('hzWords').checked, filler: g('hzFiller').checked, contractions: g('hzContr').checked,
-      split: g('hzSplit').checked, punct: g('hzPunct').checked
+      split: g('hzSplit').checked, punct: g('hzPunct').checked, rhythm: g('hzRhythm').checked
     };
   }
   function chip(txt) { var s = document.createElement('span'); s.className = 'chip'; s.textContent = txt; return s; }
@@ -1388,6 +1513,7 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     st.appendChild(chip(r.before.words + ' → ' + r.after.words + ' words'));
     st.appendChild(chip('Avg sentence ' + r.before.avg + ' → ' + r.after.avg + ' words'));
     st.appendChild(chip('Reading ease ' + r.before.ease + ' → ' + r.after.ease));
+    if (r.before.tells || r.after.tells) st.appendChild(chip('Stock phrases ' + r.before.tells + ' → ' + r.after.tells));
     var c = r.counts;
     if (c.words + c.ai) st.appendChild(chip(plural(c.words + c.ai, 'stiff word or phrase swapped', 'stiff words or phrases swapped')));
     if (c.filler) st.appendChild(chip(plural(c.filler, 'filler phrase cut', 'filler phrases cut')));
@@ -1396,6 +1522,8 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     if (c.split) st.appendChild(chip(plural(c.split, 'long sentence split', 'long sentences split')));
     if (c.punct) st.appendChild(chip(plural(c.punct, 'dash or semicolon tidied', 'dashes or semicolons tidied')));
     if (c.flavor) st.appendChild(chip(plural(c.flavor, 'casual opener added', 'casual openers added')));
+    if (c.voice) st.appendChild(chip(plural(c.voice, 'passive sentence made active', 'passive sentences made active')));
+    if (c.rhythm) st.appendChild(chip(plural(c.rhythm, 'rhythm change', 'rhythm changes')));
     // change list
     var cl = g('hzChanges'); cl.innerHTML = '';
     if (r.changes.length) {
@@ -1410,12 +1538,13 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     if (r.html) g('hzPreview').innerHTML = sanitize(r.text);
     g('hzCopyTxt').hidden = !r.html;
     g('hzDl').textContent = r.html ? 'Download .html' : 'Download .txt';
-    if (r.text === src) note('This already reads naturally. Try a stronger setting.');
+    if (r.notes && r.notes.length) note(r.notes[0]);
+    else if (r.text === src) note('This already reads naturally. Try a stronger setting.');
     saveHz();
   }
 
   // ----- save / restore -----
-  var IDS = ['hzIn', 'hzLevel', 'hzTone', 'hzFormat'], CHK = ['hzWords', 'hzFiller', 'hzContr', 'hzSplit', 'hzPunct'];
+  var IDS = ['hzIn', 'hzLevel', 'hzTone', 'hzFormat'], CHK = ['hzWords', 'hzFiller', 'hzContr', 'hzSplit', 'hzPunct', 'hzRhythm'];
   function saveHz() { try { var o = {}; IDS.forEach(function (i) { o[i] = g(i).value; }); CHK.forEach(function (i) { o[i] = g(i).checked; }); localStorage.setItem('policyGenHZ1', JSON.stringify(o)); } catch (e) {} }
   function loadHz() { try { var o = JSON.parse(localStorage.getItem('policyGenHZ1') || 'null'); if (!o) return; IDS.forEach(function (i) { if (o[i] !== undefined) g(i).value = o[i]; }); CHK.forEach(function (i) { if (o[i] !== undefined) g(i).checked = !!o[i]; }); } catch (e) {} }
   loadHz();

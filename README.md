@@ -28,15 +28,17 @@ What it does:
 - Cuts filler and stock phrases ("It is important to note that", "In today's fast-paced world")
 - Replaces stiff connectors ("Furthermore," "Moreover," "In conclusion,") with everyday ones
 - Adds contractions, breaks up very long sentences, and tidies em dashes and semicolons
+- Varies the rhythm: joins two very short sentences, rewords a third repeated opener ("We... We... We..."), breaks up a run of equally long sentences, and turns stiff passive lines into active ones ("Orders are processed within 2 days" becomes "We process orders within 2 days") when you already write as "we"
+- Replaces brochure wording such as "committed to providing", "plays a key role in", "unlock the potential", "customer satisfaction is our top priority"
 - Leaves emails, links, times, prices and abbreviations exactly as written
 
 Controls:
 
 - **Strength:** Light, Balanced or Strong
-- **Tone:** Professional, Friendly or Casual (Casual adds an occasional spoken-style opener, so keep it off legal pages)
-- **What to change:** turn any of the five kinds of edit on or off
+- **Tone:** Professional, Friendly or Casual (Casual adds an occasional spoken-style opener. It is skipped automatically when the text looks like legal or policy wording)
+- **What to change:** turn any of the six kinds of edit on or off
 - **Another version:** same text, different wording. **Humanize** always gives the same result for the same text and settings
-- **Output:** before/after word count, average sentence length and reading ease, a "What changed" list, an HTML preview, and Copy, Copy as plain text, Download and Use as input buttons
+- **Output:** before/after word count, average sentence length, reading ease and a count of stock "template" phrases, a "What changed" list, an HTML preview, and Copy, Copy as plain text, Download and Use as input buttons
 
 It uses built-in writing rules that run in your browser. Nothing is uploaded, and no AI service is involved. It makes text read more naturally, but it cannot promise any particular result in an AI-detection tool, so read the result once and add your own details.
 
@@ -101,7 +103,10 @@ The pages are written to include what Merchant Center reviewers look for, such a
 ## Notes
 
 - **Unique wording:** each generation uses a fresh random seed, shuffles list order where order does not matter, and swaps common phrases, so two runs never read the same. Policy pages share a standard structure, so some similarity between stores is normal. Add a personal sentence or two, especially in About Us and the owner bio.
-- **Contact form:** the Contact Us page can mention a contact form, but the form itself is not generated. Add it with Shopify's contact page template or a WordPress form plugin.
+- **Contact form:** the Contact Us page can mention a contact form, but the form itself is not generated. A pasted HTML form cannot send mail on either platform, so add it with Shopify's contact page template or a WordPress form plugin.
+- **Countries:** pick "Other country" if yours is not on Google's list (for example Pakistan), type it in, and choose the currency.
+- **No returns:** choosing "No, I don't accept returns" hides both Refund Method and Refund Processing Time.
+- **Cash on Delivery:** if it is selected as a payment method, the refund wording explains that those orders are refunded by bank transfer and that the bank-details email comes only from your business email.
 - **Not legal advice:** the output is a template. Have the Privacy Policy and Terms reviewed for the laws that apply in your target country.
 - **Country list:** based on Google's [supported languages and currencies](https://support.google.com/merchants/answer/160637) table.
 
