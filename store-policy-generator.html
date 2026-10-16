@@ -5,68 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Store Policy Pages Generator</title>
 <style>
-:root{--bg:#f5f6f8;--card:#fff;--ink:#1c2230;--mut:#667085;--line:#dfe3ea;--acc:#2f5bea;--acc2:#e8eefe}
+:root{
+  --bg:#e8ece9;--card:#ffffff;--sheet:#ffffff;--ink:#12201d;--mut:#55655e;--line:#d2d9d5;--line2:#e6ebe8;
+  --acc:#0b5d52;--acc-ink:#ffffff;--acc2:#dcefea;--warn:#a8650d;--field:#ffffff;--ro:#eff2f0;--shadow:0 1px 2px rgba(18,32,29,.06),0 8px 28px -10px rgba(18,32,29,.22);
+  --serif:Charter,"Bitstream Charter","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0f1715;--card:#17211e;--sheet:#1d2926;--ink:#e7eeeb;--mut:#98aaa3;--line:#2c3b37;--line2:#243230;
+  --acc:#4fc3af;--acc-ink:#05211c;--acc2:#1c3a34;--warn:#e0a24a;--field:#111a18;--ro:#16201d;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -12px rgba(0,0,0,.6);}}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
-header{padding:20px 28px;background:#fff;border-bottom:1px solid var(--line)}
-header h1{margin:0;font-size:20px}
-header p{margin:4px 0 0;color:var(--mut);font-size:14px}
-.wrap{display:grid;grid-template-columns:minmax(320px,470px) 1fr;gap:20px;padding:20px;max-width:1500px;margin:0 auto}
-@media(max-width:900px){.wrap{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
-.card h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
-label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+html{scroll-padding-top:84px}
+body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+
+/* top bar */
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
+.bar-top{max-width:1500px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none;width:34px;height:34px}
+header h1{margin:0;font-family:var(--serif);font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.nav{display:inline-flex;margin:0 0 0 auto;padding:3px;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.nav button{border:0;background:transparent;padding:7px 16px;border-radius:7px;font-size:14px;font-weight:600;color:var(--mut)}
+.nav button:hover{color:var(--ink);filter:none}
+.nav button.on{background:var(--card);color:var(--acc);box-shadow:0 1px 3px rgba(18,32,29,.18)}
+.intro{max-width:1500px;margin:0 auto;padding:22px 24px 0}
+.intro p{margin:0;max-width:62ch;font-family:var(--serif);font-size:17px;line-height:1.6;color:var(--mut)}
+
+/* layout */
+.wrap{display:grid;grid-template-columns:minmax(340px,500px) minmax(0,1fr);gap:24px;padding:20px 24px 48px;max-width:1500px;margin:0 auto;align-items:start}
+.hz{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:960px){.wrap,.hz{grid-template-columns:1fr;padding:14px 12px 40px}.bar-top{padding:10px 12px}.intro{padding:16px 14px 0}.nav{margin-left:0}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 0;box-shadow:var(--shadow)}
+.card>h2:first-child{margin-top:0}
+.card h2{font-family:var(--serif);font-size:20px;font-weight:700;letter-spacing:-.005em;margin:30px 0 4px;padding-top:22px;border-top:1px solid var(--line2);color:var(--ink)}
+.card>h2:first-child{border-top:0;padding-top:0}
+
+/* form fields */
+label{display:block;font-size:13px;font-weight:600;margin:14px 0 5px}
 label small{font-weight:400;color:var(--mut)}
-input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px;background:#fff}
-input[readonly]{background:#f2f4f7;color:var(--mut)}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--acc2);border-color:var(--acc)}
-textarea{min-height:60px;resize:vertical}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:14.5px;background:var(--field);color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input::placeholder,textarea::placeholder{color:color-mix(in srgb,var(--mut) 70%,transparent)}
+input:hover,select:hover,textarea:hover{border-color:color-mix(in srgb,var(--mut) 55%,var(--line))}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px var(--acc2)}
+input[readonly]{background:var(--ro);color:var(--mut)}
+textarea{min-height:68px;resize:vertical;line-height:1.5}
 .combo input{margin-top:6px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pay{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
-.pay label,.chk{display:flex;align-items:center;gap:6px;margin:0;font-weight:400}
-.pay input,.chk input{width:auto}
-.hint{font-size:12px;color:var(--mut);margin-top:3px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.pay{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pay label,.chk{display:flex;align-items:center;gap:8px;margin:0;font-weight:400;font-size:14px}
+.pay label{padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--field);cursor:pointer;transition:background .15s,border-color .15s}
+.pay label:hover{border-color:var(--acc)}
+.pay label:has(input:checked){background:var(--acc2);border-color:var(--acc);color:var(--acc);font-weight:600}
+.pay input,.chk input{width:16px;height:16px;padding:0;accent-color:var(--acc);flex:none}
+.hint{font-size:12.5px;color:var(--mut);margin-top:5px;line-height:1.45}
 .unit{display:flex;align-items:center;gap:8px;margin-top:6px}
 .unit span{font-size:13px;color:var(--mut);min-width:34px}
-button{font:inherit;font-size:14px;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
-button.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
-button:hover{filter:brightness(.96)}
-.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.tabs button{padding:7px 11px;font-size:13px}
-.tabs button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc);font-weight:600}
-#out{padding:6px 4px;max-height:75vh;overflow:auto}
-#out h1{font-size:26px;margin:0 0 12px}
-#out h2{font-size:19px;margin:22px 0 8px}
-#out p,#out li{font-size:15px}
-.empty{color:var(--mut);text-align:center;padding:60px 10px}
-.toast{position:fixed;bottom:20px;right:20px;background:#1c2230;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
-.toast.show{opacity:1}
-[hidden]{display:none!important}
-.nav{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
-.nav button{padding:8px 16px;border-radius:999px;font-size:14px}
-.nav button.on{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
-.hz{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-@media(max-width:900px){.hz{grid-template-columns:1fr}}
-#hzIn,#hzOut{min-height:300px;line-height:1.55}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{background:var(--acc2);color:var(--acc);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
-.hzprev{border:1px solid var(--line);border-radius:8px;padding:10px 14px;max-height:340px;overflow:auto;font-size:15px}
-.hzprev h1,.hzprev h2,.hzprev h3{font-size:17px;margin:14px 0 6px}
+
+/* buttons */
+button{font:inherit;font-size:14px;font-weight:550;padding:9px 15px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s,transform .05s}
+button:hover{border-color:var(--acc);color:var(--acc)}
+button:active{transform:translateY(1px)}
+button.p{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:650}
+button.p:hover{filter:brightness(1.1);color:var(--acc-ink)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.card>.bar:last-child{position:sticky;bottom:0;margin:26px -22px 0;padding:14px 22px;background:var(--card);border-top:1px solid var(--line);border-radius:0 0 14px 14px;z-index:5}
+.req{margin-left:auto;font-size:12.5px;color:var(--mut)}
+.req b{color:var(--warn)}
+.req.ok b{color:var(--acc)}
+
+/* output: a sheet of paper */
+.out-col{position:sticky;top:84px}
+@media(max-width:960px){.out-col{position:static}}
+.tabs{display:flex;gap:2px;flex-wrap:wrap;margin:14px 0 0;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:3px solid transparent;border-radius:8px 8px 0 0;background:transparent;padding:9px 12px 8px;font-size:13.5px;color:var(--mut);margin-bottom:-1px}
+.tabs button:hover{background:var(--acc2);color:var(--acc)}
+.tabs button.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:700;background:transparent}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 0}
+.tools .chk{margin-left:4px;color:var(--mut);font-size:13px}
+#out{margin:16px -6px 22px;padding:34px 44px 40px;max-height:calc(100vh - 330px);min-height:320px;overflow:auto;background:var(--sheet);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow);font-family:var(--serif);color:var(--ink)}
+#out h1{font-size:30px;line-height:1.2;margin:0 0 16px;letter-spacing:-.015em}
+#out h2{font-size:21px;line-height:1.3;margin:28px 0 8px;padding:0;border:0}
+#out p,#out li{font-size:16.5px;line-height:1.7;max-width:68ch}
+#out ul{padding-left:22px}
+#out a{color:var(--acc)}
+@media(max-width:600px){#out{padding:22px 18px 26px;margin:14px 0 18px}}
+.empty{max-width:46ch;margin:34px auto;text-align:left;font-family:var(--sans)}
+.empty strong{display:block;font-family:var(--serif);font-size:22px;margin-bottom:8px}
+.empty p{margin:0 0 14px;font-size:15px;color:var(--mut)}
+.empty ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.empty li{font-size:13px;padding:4px 10px;border:1px dashed var(--line);border-radius:999px;color:var(--mut)}
+
+/* humanizer */
+#hzIn,#hzOut{min-height:320px;line-height:1.65;font-family:var(--serif);font-size:16px;padding:16px 18px;border-radius:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{background:var(--acc2);color:var(--acc);border-radius:6px;padding:4px 10px;font-size:12.5px;font-weight:600}
+.hzprev{border:1px solid var(--line);border-radius:6px;padding:14px 18px;max-height:340px;overflow:auto;font-family:var(--serif);font-size:16px;line-height:1.65;background:var(--sheet)}
+.hzprev h1,.hzprev h2,.hzprev h3{font-size:18px;margin:14px 0 6px;border:0;padding:0}
 .hzlist{margin:8px 0 0;padding-left:20px;font-size:13px;color:var(--mut)}
-details summary{cursor:pointer;font-size:13px;font-weight:600}
+details summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--acc)}
+.cardfoot{height:22px}
+.card>.hint:last-child{margin:14px 0 22px}
+
+.toast{position:fixed;bottom:22px;right:22px;max-width:min(420px,calc(100vw - 44px));background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:10px;font-size:14px;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:50}
+.toast.show{opacity:1;transform:none}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <header>
-  <h1>Store Policy Pages Generator</h1>
-  <p id="hdrSub">Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.</p>
-  <nav class="nav" aria-label="Sections">
-    <button type="button" class="on" data-view="policy">Policy Pages</button>
-    <button type="button" data-view="humanizer">Humanizer</button>
-  </nav>
+  <div class="bar-top">
+    <div class="brand">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><rect x="3" y="2" width="22" height="28" rx="3" fill="var(--acc)"/><rect x="9" y="6" width="22" height="26" rx="3" fill="var(--card)" stroke="var(--acc)" stroke-width="2"/><path d="M14 14h12M14 19h12M14 24h7" stroke="var(--acc)" stroke-width="2" stroke-linecap="round"/></svg>
+      <h1>Store Policy Pages Generator</h1>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <button type="button" class="on" data-view="policy">Policy Pages</button>
+      <button type="button" data-view="humanizer">Humanizer</button>
+    </nav>
+  </div>
 </header>
+<div class="intro"><p id="hdrSub">Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.</p></div>
 
 <div class="wrap" id="view-policy">
   <div class="card">
@@ -81,7 +142,7 @@ details summary{cursor:pointer;font-size:13px;font-weight:600}
     <div id="combo_hours" class="combo"></div>
     <label>Time Zone</label><select id="tz"></select>
     <label>Founded <small>(year, optional)</small></label><input id="founded" placeholder="2024">
-    <label class="chk" style="margin-top:12px"><input type="checkbox" id="contactForm" checked> Mention a contact form on the Contact Us page <small>(add the form itself with Shopify's contact template or a WordPress form plugin)</small></label>
+    <label class="chk" style="margin-top:14px;align-items:flex-start"><input type="checkbox" id="contactForm" checked style="margin-top:3px"><span>Mention a contact form on the Contact Us page <br><small>(add the form itself with Shopify's contact template or a WordPress form plugin)</small></span></label>
     <div class="hint">Privacy inquiries and order-change contacts use your Business Email and Business Phone.</div>
 
     <h2 style="margin-top:22px">Products &amp; owner</h2>
@@ -182,20 +243,21 @@ details summary{cursor:pointer;font-size:13px;font-weight:600}
       <button class="p" id="gen">Generate pages</button>
       <button id="regen" title="Same details, different wording">Rewrite wording</button>
       <button id="clear">Clear form</button>
+      <span class="req" id="reqHint" aria-live="polite"></span>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card out-col">
     <h2>Generated pages</h2>
     <div class="tabs" id="tabs"></div>
-    <div class="bar" style="margin:0 0 12px">
+    <div class="tools">
       <button id="copyHtml">Copy HTML</button>
       <button id="copyTxt">Copy plain text</button>
       <button id="dlAll">Download all pages (.html)</button>
       <label class="chk" style="margin-left:6px"><input type="checkbox" id="keepH1"> Include page title (H1) in copied HTML</label>
     </div>
     <div class="hint" style="margin-bottom:10px">Copied HTML uses only h2, p, ul, strong, a and br, which Shopify and WordPress both accept. Shopify: Pages → open page → click the &lt;&gt; “Show HTML” button in the editor and paste. WordPress: add a “Custom HTML” block (or the Classic editor’s Text tab) and paste. Leave the H1 off: both platforms already use the page title as the H1.</div>
-    <div id="out"><div class="empty">Fill in the form and press “Generate pages”.</div></div>
+    <div id="out"><div class="empty"><strong>No pages yet</strong><p>Add your business name, email, phone, address, products and country, then select Generate pages.</p><ul><li>About Us</li><li>Contact Us</li><li>FAQs</li><li>Shipping</li><li>Privacy</li><li>Refund &amp; Returns</li><li>Terms</li><li>Payment</li></ul></div></div>
   </div>
 </div>
 <div class="wrap hz" id="view-humanizer" hidden>
@@ -249,6 +311,7 @@ details summary{cursor:pointer;font-size:13px;font-weight:600}
 
 <script>
 const $ = id => document.getElementById(id);
+const EMPTY_HTML = `<div class="empty"><strong>No pages yet</strong><p>Add your business name, email, phone, address, products and country, then select Generate pages.</p><ul><li>About Us</li><li>Contact Us</li><li>FAQs</li><li>Shipping</li><li>Privacy</li><li>Refund &amp; Returns</li><li>Terms</li><li>Payment</li></ul></div>`;
 
 // ================= DATA =================
 // Countries where Google Merchant Center supports Shopping ads & free listings (support.google.com/merchants/answer/160637)
@@ -823,7 +886,14 @@ function load(){ try{
   if(o.cf!==undefined) $('contactForm').checked = o.cf;
 }catch(e){} }
 
+function refreshReq(){
+  const need = ['businessName','email','phone','address','products'].map(id=>$(id).value.trim()).concat([$('countries').value==='__custom' ? $('countries_in').value.trim() : $('countries').value]);
+  const n = need.filter(Boolean).length, el = $('reqHint');
+  el.className = 'req' + (n===need.length ? ' ok' : '');
+  el.innerHTML = n===need.length ? '<b>All required details filled</b>' : '<b>'+n+' of '+need.length+'</b> required details filled';
+}
 function refreshUI(){
+  refreshReq();
   COMBO_IDS.forEach(id=>{ $(id+'_in').style.display = $(id+'_sel').value==='__custom' ? '' : 'none'; });
   $('currency_in').style.display = $('currency').value==='__custom' ? '' : 'none';
   // total delivery (auto)
@@ -865,7 +935,7 @@ $('clear').onclick = ()=>{
   FIELDS.forEach(f=>{ const el=$(f); if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
   COMBO_IDS.forEach(id=>{ $(id+'_sel').selectedIndex=0; $(id+'_in').value=''; });
   document.querySelectorAll('#retMethods input').forEach(c=>c.checked = c.value==='mail');
-  pages={}; $('out').innerHTML='<div class="empty">Fill in the form and press “Generate pages”.</div>';
+  pages={}; $('out').innerHTML=EMPTY_HTML;
   try{localStorage.removeItem('policyGenV3')}catch(e){}
   refreshUI();
 };
