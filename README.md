@@ -32,15 +32,23 @@ What it does:
 - Replaces brochure wording such as "committed to providing", "plays a key role in", "unlock the potential", "customer satisfaction is our top priority"
 - Leaves emails, links, times, prices and abbreviations exactly as written
 
-Controls:
+Controls and tools:
 
-- **Strength:** Light, Balanced or Strong
-- **Tone:** Professional, Friendly or Casual (Casual adds an occasional spoken-style opener. It is skipped automatically when the text looks like legal or policy wording)
+- **Mode:** Standard, Fluency (light touch), Formal (writes out contractions, fuller wording), Simple (plainer words, shorter sentences), Shorten (cuts padding) or Creative (rewrites harder). **Compare modes** shows the same text in all six side by side, with a "Use this version" button on each
+- **Strength:** Light, Balanced or Strong. **Tone:** Professional, Friendly or Casual (Casual adds an occasional spoken-style opener and is skipped automatically on legal or policy wording)
+- **Word variety:** a slider that swaps more words for close alternatives from a built-in thesaurus
+- **Words to keep as they are:** list brand and product names (comma-separated) and they are never touched
+- **English spelling:** keep as written, or convert to American or British spelling
 - **What to change:** turn any of the six kinds of edit on or off
+- **Review changes:** highlights every word that changed, and lets you click a word to pick another from the thesaurus
+- **Paste and Upload file:** paste from the clipboard, or load a .txt, .md or .html file (for Word files, copy the text and paste it)
+- **History:** your last 15 rewrites are kept in this browser, with a Restore button
 - **Another version:** same text, different wording. **Humanize** always gives the same result for the same text and settings
-- **Output:** before/after word count, average sentence length, reading ease and a count of stock "template" phrases, a "What changed" list, an HTML preview, and Copy, Copy as plain text, Download and Use as input buttons
+- **Output:** before/after word count, average sentence length, reading ease, a human-style score, a tone read-out and a count of stock "template" phrases, plus a "What changed" list, an HTML preview, and Copy, Copy as plain text, Download and Use as input buttons
 
-It uses built-in writing rules that run in your browser. Nothing is uploaded, and no AI service is involved. It makes text read more naturally, but it cannot promise any particular result in an AI-detection tool, so read the result once and add your own details.
+The human-style score is this tool's own reading check (template phrases, sentence-length variety, contractions, repeated openers). It is not an AI-detector result.
+
+It uses built-in writing rules that run in your browser. Nothing is uploaded, and no AI service is involved. It makes text read more naturally, but it cannot promise any particular result in an AI-detection tool, so read the result once and add your own details. There is no "expand" or free-form "custom instruction" mode, because those need a language model.
 
 ## How to use the Policy Pages section
 

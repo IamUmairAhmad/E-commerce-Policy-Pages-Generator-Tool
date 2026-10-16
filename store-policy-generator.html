@@ -106,6 +106,27 @@ button.p:hover{filter:brightness(1.1);color:var(--acc-ink)}
 .hzlist{margin:8px 0 0;padding-left:20px;font-size:13px;color:var(--mut)}
 details summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--acc)}
 .cardfoot{height:22px}
+.modes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.modes button{padding:7px 13px;border-radius:999px;font-size:13.5px}
+.modes button.on{background:var(--acc2);border-color:var(--acc);color:var(--acc);font-weight:700}
+input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-shadow:none;background:transparent}
+#hzReview{min-height:320px;max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:16px 18px;font-family:var(--serif);font-size:16px;line-height:1.75;white-space:pre-wrap;background:var(--field)}
+#hzReview mark{background:color-mix(in srgb,var(--acc) 24%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+#hzReview .w{cursor:pointer;border-bottom:1px dotted var(--acc)}
+#hzReview .w:hover{background:var(--acc2)}
+.pop{position:fixed;z-index:60;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px;display:flex;flex-direction:column;min-width:150px;max-width:240px}
+.pop button{border:0;text-align:left;padding:7px 10px;border-radius:6px;font-size:14px}
+.pop button:hover{background:var(--acc2)}
+.pop .t{font-size:12px;color:var(--mut);padding:4px 10px}
+.cmp{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:10px}
+.cmp>div{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--field)}
+.cmp strong{font-family:var(--serif);font-size:16px}
+.cmp .tx{font-family:var(--serif);font-size:14.5px;line-height:1.6;max-height:150px;overflow:auto;white-space:pre-wrap}
+.cmp .meta{font-size:12.5px;color:var(--mut)}
+.hist{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.hist>div{display:flex;gap:10px;align-items:center;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:13px}
+.hist .m{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)}
+.hist button{padding:4px 10px;font-size:12.5px}
 .card>.hint:last-child{margin:14px 0 22px}
 
 .toast{position:fixed;bottom:22px;right:22px;max-width:min(420px,calc(100vw - 44px));background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:10px;font-size:14px;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:50}
@@ -272,6 +293,23 @@ details summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--acc)
       <div><label for="hzTone">Tone</label>
         <select id="hzTone"><option value="professional">Professional</option><option value="friendly" selected>Friendly</option><option value="casual">Casual</option></select></div>
     </div>
+    <label>Mode</label>
+    <div class="modes" id="hzModes" role="group" aria-label="Rewrite mode">
+      <button type="button" class="on" data-mode="standard" aria-pressed="true">Standard</button>
+      <button type="button" data-mode="fluency" aria-pressed="false">Fluency</button>
+      <button type="button" data-mode="formal" aria-pressed="false">Formal</button>
+      <button type="button" data-mode="simple" aria-pressed="false">Simple</button>
+      <button type="button" data-mode="shorten" aria-pressed="false">Shorten</button>
+      <button type="button" data-mode="creative" aria-pressed="false">Creative</button>
+    </div>
+    <div class="hint" id="hzModeHint"></div>
+    <label for="hzVar">Word variety <small id="hzVarVal">0%</small></label>
+    <input type="range" id="hzVar" min="0" max="100" step="5" value="0">
+    <div class="hint">Swaps more words for close alternatives from a built-in thesaurus. Higher means more changes, so read the result for meaning.</div>
+    <label for="hzFreeze">Words to keep as they are <small>(comma-separated, for brand and product names)</small></label>
+    <input id="hzFreeze" placeholder="Azora Glam, GlowKit Pro">
+    <label for="hzSpell">English spelling</label>
+    <select id="hzSpell"><option value="keep">Keep as written</option><option value="us">American (color, organize)</option><option value="uk">British (colour, organise)</option></select>
     <label for="hzFormat">Input format</label>
     <select id="hzFormat"><option value="auto" selected>Auto-detect</option><option value="text">Plain text</option><option value="html">HTML (keeps your tags and links)</option></select>
     <label>What to change</label>
@@ -286,6 +324,9 @@ details summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--acc)
     <div class="bar">
       <button class="p" id="hzGo" type="button">Humanize</button>
       <button id="hzAgain" type="button" title="Same text, different wording">Another version</button>
+      <button id="hzPaste" type="button">Paste</button>
+      <button id="hzUpload" type="button">Upload file</button>
+      <input type="file" id="hzFile" accept=".txt,.md,.html,.htm,text/plain,text/html" hidden>
       <button id="hzSample" type="button">Load sample</button>
       <button id="hzClear" type="button">Clear</button>
     </div>
@@ -295,14 +336,19 @@ details summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--acc)
   <div class="card">
     <h2>Humanized text</h2>
     <textarea id="hzOut" placeholder="Your rewritten text appears here. You can edit it before copying."></textarea>
+    <div id="hzReview" hidden></div>
     <div class="chips" id="hzStats"></div>
     <div class="bar" style="margin-top:12px">
       <button id="hzCopy" type="button">Copy</button>
       <button id="hzCopyTxt" type="button" hidden>Copy as plain text</button>
       <button id="hzDl" type="button">Download .txt</button>
       <button id="hzReuse" type="button" title="Run it through again">Use as input</button>
+      <button id="hzRev" type="button" title="Highlight what changed and click a word to pick another">Review changes</button>
+      <button id="hzCmpBtn" type="button" title="See the same text in every mode">Compare modes</button>
     </div>
     <details id="hzChangesWrap" style="margin-top:14px" hidden><summary>What changed</summary><div id="hzChanges"></div></details>
+    <div id="hzCmpWrap" hidden><h2 style="margin-top:18px">Compare modes</h2><div class="cmp" id="hzCmp"></div></div>
+    <details id="hzHistWrap" style="margin-top:14px" hidden><summary>History</summary><div class="hist" id="hzHist"></div></details>
     <div id="hzPrevWrap" hidden><h2 style="margin-top:18px">Preview</h2><div class="hzprev" id="hzPreview"></div></div>
     <div class="hint" style="margin-top:12px">This rewrites with built-in writing rules in your browser, and nothing is sent anywhere. It makes text read more naturally, but it can't promise any particular result in an AI-detection tool, so read it through once and add your own details.</div>
   </div>
@@ -1167,7 +1213,145 @@ R(/^((?:your|all|the|our)\s+)?(orders?|items?|products?|packages?|parcels?|refun
     return mod + PASSIVE_V[g[3].toLowerCase()] + ' ' + (g[0] ? g[0].toLowerCase() : '') + g[1].toLowerCase() + ' ';
   }, 'voice', 2, { start: true });
 
+// -- mode-only rules (see MODE_PRESET). `only` limits a rule to one mode.
+// Simple: plainer vocabulary
+R(/\bpurchas(e|es)(?=\s+(?:the|a|an|your|our|any|more|one|two|three|items?|products?)\b)/i, forms({ e: 'buy', es: 'buys' }), 'swap', 1, { only: 'simple' });
+R(/\bpurchased\b(?=\s+(?:the|a|an|your|our|any|more|one|two|three|items?|products?)\b)/i, 'bought', 'swap', 1, { only: 'simple' });
+R(/\bpurchasing\b(?=\s+(?:the|a|an|your|our|any|more|one|two|three|items?|products?)\b)/i, 'buying', 'swap', 1, { only: 'simple' });
+R(/,\s*(?:therefore|consequently|accordingly|thus|hence),?\s+/i, ', so ', 'swap', 1, { only: 'simple' });
+R(/\bprimarily\b/i, 'mainly', 'swap', 1, { only: 'simple' });
+R(/\bparticularly\b/i, 'especially', 'swap', 1, { only: 'simple' });
+R(/\btypically\b/i, 'usually', 'swap', 1, { only: 'simple' });
+R(/\bfrequently\b/i, 'often', 'swap', 1, { only: 'simple' });
+R(/\boccasionally\b/i, 'sometimes', 'swap', 1, { only: 'simple' });
+R(/\bimmediately\b/i, 'right away', 'swap', 1, { only: 'simple' });
+R(/\breceiv(e|es|ed|ing)\b/i, forms({ e: 'get', es: 'gets', ed: 'got', ing: 'getting' }), 'swap', 1, { only: 'simple' });
+R(/\bremain(s|ed|ing)?\b(?=\s+(?:valid|available|open|closed|unchanged|free|active|yours|the same|in)\b)/i, g => ({ '': 'stay', s: 'stays', ed: 'stayed', ing: 'staying' })[(g[0] || '').toLowerCase()], 'swap', 1, { only: 'simple' });
+R(/\bselect(s|ed|ing)?(?=\s+(?:a|an|the|your|one|any)\b)/i, g => ({ '': 'pick', s: 'picks', ed: 'picked', ing: 'picking' })[(g[0] || '').toLowerCase()], 'swap', 1, { only: 'simple' });
+R(/\bverif(y|ies|ied|ying)\b/i, forms({ y: 'check', ies: 'checks', ied: 'checked', ying: 'checking' }), 'swap', 1, { only: 'simple' });
+R(/\bnotif(y|ies|ied|ying)(?=\s+(?:you|them|us|customers)\b)/i, forms({ y: 'tell', ies: 'tells', ied: 'told', ying: 'telling' }), 'swap', 1, { only: 'simple' });
+// Shorten: cut padding
+R(/\b(?:really|very|quite|rather|truly|basically|actually|literally|definitely|certainly|absolutely|totally)\s+/i, '', 'filler', 1, { only: 'shorten' });
+R(/\bplease feel free to\b/i, 'please', 'filler', 1, { only: 'shorten' });
+R(/\bfeel free to\s+/i, '', 'filler', 1, { only: 'shorten' });
+R(/\b(all|both) of the\b/i, '$1 the', 'swap', 1, { only: 'shorten' });
+R(/\bwhether or not\b/i, 'whether', 'swap', 1, { only: 'shorten' });
+R(/\ba total of\s+/i, '', 'swap', 1, { only: 'shorten' });
+R(/\bend result\b/i, 'result', 'swap', 1, { only: 'shorten' });
+R(/\bfuture plans\b/i, 'plans', 'swap', 1, { only: 'shorten' });
+R(/\bpast history\b/i, 'history', 'swap', 1, { only: 'shorten' });
+R(/\bfree gift\b/i, 'gift', 'swap', 1, { only: 'shorten' });
+R(/\bbasic fundamentals\b/i, 'basics', 'swap', 1, { only: 'shorten' });
+R(/\bunexpected surprise\b/i, 'surprise', 'swap', 1, { only: 'shorten' });
+R(/,\s*which (?:is|are) (?:also )?(?:something|a thing) that\b/i, ', which', 'swap', 1, { only: 'shorten' });
+// Formal: fuller, more careful wording
+R(/\ba lot of\b/i, ['many', 'a great deal of'], 'swap', 1, { only: 'formal' });
+R(/\blots of\b/i, ['many', 'a large number of'], 'swap', 1, { only: 'formal' });
+R(/\bkids\b/i, 'children', 'swap', 1, { only: 'formal' });
+R(/\bstuff\b/i, 'items', 'swap', 1, { only: 'formal' });
+R(/\bbuy(s|ing)?\b(?=\s+(?:the|a|an|your|our|any|more|one|two|three|items?|products?)\b)/i, g => ({ '': 'purchase', s: 'purchases', ing: 'purchasing' })[(g[0] || '').toLowerCase()], 'swap', 1, { only: 'formal' });
+R(/\bfix(es|ed|ing)?\b(?=\s+(?:the|a|an|your|our|any|this|that)\b)/i, g => ({ '': 'resolve', es: 'resolves', ed: 'resolved', ing: 'resolving' })[(g[0] || '').toLowerCase()], 'swap', 1, { only: 'formal' });
+R(/\bthanks for\b/i, 'thank you for', 'swap', 1, { only: 'formal' });
+R(/^but\s+/i, ['However, ', 'Nevertheless, '], 'transition', 1, { start: true, only: 'formal' });
+R(/^also,?\s+/i, 'Additionally, ', 'transition', 1, { start: true, only: 'formal' });
+R(/^plus,?\s+/i, 'In addition, ', 'transition', 1, { start: true, only: 'formal' });
+R(/^so\s+(?=[a-z])/i, 'Therefore, ', 'transition', 1, { start: true, only: 'formal' });
+
+// contractions -> full forms (Formal mode)
+const FULL = { "can't": 'cannot', "won't": 'will not', "shan't": 'shall not', "let's": 'let us' };
+function expand(t, st) {
+  return t.replace(/\b([A-Za-z]+)(['’])(t|re|ll|ve|m|s)\b/g, (m, a, q, suf, off, str) => {
+    const low = m.toLowerCase().replace('’', "'");
+    let r = null;
+    if (FULL[low]) r = FULL[low];
+    else if (suf === 't' && /n$/i.test(a)) r = a.slice(0, -1) + ' not';
+    else if (suf === 're') r = a + ' are';
+    else if (suf === 'll') r = a + ' will';
+    else if (suf === 've') r = a + ' have';
+    else if (suf === 'm' && /^i$/i.test(a)) r = a + ' am';
+    else if (suf === 's' && /^(it|that|there|here|what|who|he|she|where|how)$/i.test(a)) r = a + ' is';
+    if (!r) return m;
+    st.formal = (st.formal || 0) + 1;
+    return matchCase(m, r);
+  });
+}
+
+// -- a small built-in thesaurus: safe, same-part-of-speech swaps (used by Word variety and click-a-word)
+const SYN = {};
+function addSyn(forms, alts) { forms.forEach((f, i) => { SYN[f] = alts.map(a => Array.isArray(a) ? a[i] : a).filter(Boolean); }); }
+addSyn(['choose', 'chooses', 'chose', 'choosing', 'chosen'], [['pick', 'picks', 'picked', 'picking', 'picked']]);
+addSyn(['create', 'creates', 'created', 'creating'], [['build', 'builds', 'built', 'building'], ['design', 'designs', 'designed', 'designing']]);
+addSyn(['provide', 'provides', 'provided', 'providing'], [['offer', 'offers', 'offered', 'offering']]);
+addSyn(['receive', 'receives', 'received', 'receiving'], [['get', 'gets', 'got', 'getting']]);
+addSyn(['buy', 'buys', 'bought', 'buying'], [['purchase', 'purchases', 'purchased', 'purchasing']]);
+addSyn(['improve', 'improves', 'improved', 'improving'], [['enhance', 'enhances', 'enhanced', 'enhancing'], ['upgrade', 'upgrades', 'upgraded', 'upgrading']]);
+addSyn(['keep', 'keeps', 'kept', 'keeping'], [['maintain', 'maintains', 'maintained', 'maintaining']]);
+addSyn(['show', 'shows', 'showed', 'showing'], [['display', 'displays', 'displayed', 'displaying']]);
+addSyn(['make sure', 'makes sure', 'made sure', 'making sure'], [['check', 'checks', 'checked', 'checking']]);
+[['good', 'great', 'solid'], ['great', 'excellent', 'fantastic'], ['big', 'large'], ['large', 'big'], ['fast', 'quick', 'speedy'], ['quick', 'fast', 'swift'],
+ ['easy', 'simple', 'effortless'], ['simple', 'easy', 'straightforward'], ['cheap', 'affordable'], ['affordable', 'budget-friendly', 'reasonably priced'],
+ ['beautiful', 'lovely', 'gorgeous'], ['nice', 'lovely', 'pleasant'], ['important', 'key', 'essential'], ['helpful', 'useful', 'handy'], ['useful', 'helpful', 'practical'],
+ ['amazing', 'incredible', 'fantastic'], ['unique', 'distinctive', 'one-of-a-kind'], ['reliable', 'dependable', 'trustworthy'],
+ ['safe', 'secure'], ['secure', 'safe'], ['friendly', 'welcoming'], ['strong', 'sturdy', 'solid'], ['perfect', 'ideal'], ['ideal', 'perfect'], ['popular', 'well-loved'],
+ ['quickly', 'promptly', 'rapidly'], ['carefully', 'thoughtfully'], ['usually', 'typically', 'generally'], ['often', 'frequently', 'regularly'], ['mainly', 'mostly', 'largely'],
+ ['really', 'truly', 'genuinely'], ['truly', 'really'], ['completely', 'fully', 'entirely'], ['fully', 'completely'], ['especially', 'particularly'],
+ ['customers', 'shoppers', 'buyers'], ['customer', 'shopper', 'buyer'], ['products', 'items'], ['product', 'item'], ['items', 'products'], ['item', 'product'], ['store', 'shop'],
+ ['price', 'cost'], ['prices', 'costs'], ['goal', 'aim'], ['goals', 'aims'], ['selection', 'range'], ['issue', 'problem'], ['issues', 'problems'], ['problem', 'issue'], ['problems', 'issues'],
+ ['choice', 'option'], ['choices', 'options'], ['option', 'choice'], ['options', 'choices'], ['advice', 'guidance']
+].forEach(r => { SYN[r[0]] = r.slice(1); });
+function synonyms(word) {
+  const w = String(word).toLowerCase();
+  const a = SYN[w];
+  if (!a) return [];
+  return a.map(x => matchCase(word, x));
+}
+function fixArticle(art, next) { return /^(?:[aeiou]|hour|honest|honou?r|heir)/i.test(next) && !/^(?:uni|use|usu|one|once|eu)/i.test(next) ? 'an' : 'a'; }
+function vary(t, ctx, st) {
+  return t.replace(/\b(?:(an?)\s+)?([A-Za-z][A-Za-z'-]*)\b/gi, (m, art, w) => {
+    const alts = SYN[w.toLowerCase()];
+    if (!alts || ctx.rand() >= ctx.variety * 0.75) return m;
+    let to = alts[Math.floor(ctx.rand() * alts.length)];
+    if (ctx.last['syn:' + w.toLowerCase()] === to && alts.length > 1) to = alts[(alts.indexOf(to) + 1) % alts.length];
+    ctx.last['syn:' + w.toLowerCase()] = to;
+    to = matchCase(w, to);
+    const res = art ? fixArticle(art, to) + ' ' + to : to;
+    const outArt = art ? matchCase(art, res.split(' ')[0]) + ' ' + to : to;
+    st.syn = (st.syn || 0) + 1;
+    const k = w.toLowerCase() + ' → ' + to.toLowerCase();
+    st.log[k] = (st.log[k] || 0) + 1;
+    return outArt;
+  });
+}
+
+// -- US / UK spelling
+const SPELL = [];
+['organiz', 'customiz', 'recogniz', 'realiz', 'apologiz', 'authoriz', 'summariz', 'specializ', 'minimiz', 'maximiz', 'prioritiz', 'personaliz', 'categoriz', 'finaliz', 'emphasiz', 'standardiz', 'analyz', 'catalyz']
+  .forEach(st0 => SPELL.push([st0, st0.replace(/z$/, 's').replace(/lys$/, 'lys'), '(e|es|ed|ing|ation|ations|er|ers|able)?']));
+SPELL.push(['color', 'colour', '(s|ed|ing|ful|less)?'], ['favor', 'favour', '(s|ite|ites|ed|able|ably)?'], ['behavior', 'behaviour', '(s|al)?'], ['flavor', 'flavour', '(s|ed|ful|ing)?'],
+  ['honor', 'honour', '(s|ed|able|ing)?'], ['labor', 'labour', '(s|ed)?'], ['neighbor', 'neighbour', '(s|hood|hoods)?'], ['center', 'centre', '(s|ed)?'], ['theater', 'theatre', '(s)?'],
+  ['gray', 'grey', '()?'], ['jewelry', 'jewellery', '()?'], ['aluminum', 'aluminium', '()?'], ['defense', 'defence', '()?'], ['offense', 'offence', '()?'], ['catalog', 'catalogue', '(s|d)?'],
+  ['fulfill', 'fulfil', '(s|ment)?'], ['enrollment', 'enrolment', '()?'], ['traveling', 'travelling', '()?'], ['traveled', 'travelled', '()?'], ['traveler', 'traveller', '(s)?'],
+  ['canceled', 'cancelled', '()?'], ['canceling', 'cancelling', '()?'], ['mom', 'mum', '(s)?'], ['sneakers', 'trainers', '()?'], ['pajamas', 'pyjamas', '()?'], ['plow', 'plough', '(s|ed)?'],
+  ['skeptic', 'sceptic', '(s|al)?'], ['artifact', 'artefact', '(s)?'], ['program', 'programme', '(s)?']);
+function spell(t, to, st) {
+  SPELL.forEach(p => {
+    const from = to === 'uk' ? p[0] : p[1], target = to === 'uk' ? p[1] : p[0];
+    if (p[0] === 'program' && to === 'us') return;      // "programme" -> "program" is fine, but "program" -> "programme" only for UK
+    const re = new RegExp('\\b' + from + p[2] + '\\b', 'gi');
+    t = t.replace(re, (m, suf) => {
+      const r = matchCase(m, target + (suf || ''));
+      if (r === m) return m;
+      st.spell = (st.spell || 0) + 1;
+      const k = m.toLowerCase() + ' → ' + r.toLowerCase();
+      st.log[k] = (st.log[k] || 0) + 1;
+      return r;
+    });
+  });
+  return t;
+}
+
 // ---------- text protection ----------
+let FREEZE = [];
 const TOK_OPEN = '\u0002', TOK_CLOSE = '\u0003', DOT = '\u0001';
 function protect(text, store) {
   const keep = re => { text = text.replace(re, m => { store.push(m); return TOK_OPEN + (store.length - 1) + TOK_CLOSE; }); };
@@ -1175,6 +1359,7 @@ function protect(text, store) {
   keep(/(?:https?:\/\/|www\.)[^\s<>"']*[^\s<>"'.,;:!?)]/gi);               // URLs
   keep(/[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}/g);                    // emails
   keep(/\b\d{1,2}:\d{2}(?:\s?[AaPp]\.?[Mm]\.?)?/g);                        // times
+  FREEZE.forEach(re => keep(re));                                          // words the writer asked to keep as they are
   text = text.replace(/\b(e\.g|i\.e|vs|mr|mrs|ms|dr|prof|no|approx|est|fig|st|jr|sr)\./gi, m => m.replace(/\./g, DOT));
   text = text.replace(/\b((?:[ap]\.m)|etc|inc|ltd|co)\.(?!\s+[A-Z])/gi, (m, a) => a.replace(/\./g, DOT) + DOT);
   text = text.replace(/(\d)\.(\d)/g, '$1' + DOT + '$2');
@@ -1292,8 +1477,9 @@ function punct(t, ctx, st) {
   return t;
 }
 const THRESH = { 1: 34, 2: 26, 3: 20 };
+const MODE_PRESET = { standard: {}, fluency: {}, formal: { tone: 'professional', contractions: false }, simple: { level: 3 }, shorten: {}, creative: { level: 3 } };
 function splitLong(t, ctx, st, depth, force) {
-  if (depth > 3 || (!force && wc(t) <= THRESH[ctx.level])) return [t];
+  if (depth > 3 || (!force && wc(t) <= (ctx.mode === 'simple' ? 15 : THRESH[ctx.level]))) return [t];
   const minL = force ? 5 : 7, minR = force ? 5 : 6;
   const cands = [];
   const re = /(,\s+(and|but|so)\s+|;\s+)/g;
@@ -1321,7 +1507,10 @@ function doSentence(t, isStart, ctx, st) {
   const o = ctx.opts;
   const edits = o.words || o.filler || o.contractions || o.punct || o.split;
   if (!edits && !o.rhythm) return [t];
+  if (ctx.mode === 'formal' && edits) t = expand(t, st);
   RULES.forEach(rule => {
+    if (rule.only && rule.only !== ctx.mode) return;
+    if (ctx.mode === 'formal' && rule.cat === 'transition' && !rule.only) return;   // formal text keeps its formal connectors
     if (!edits && rule.cat !== 'voice') return;      // only the rhythm option is on: touch nothing but passive voice
     if (rule.level > ctx.level) return;
     if (rule.start && !isStart) return;
@@ -1331,6 +1520,8 @@ function doSentence(t, isStart, ctx, st) {
     t = applyRule(t, rule, ctx, st);
   });
   if (!edits) return [t];
+  if (ctx.variety > 0 && o.words) t = vary(t, ctx, st);
+  if (o.spelling === 'us' || o.spelling === 'uk') t = spell(t, o.spelling, st);
   t = tidy(t);
   if (isStart) t = capStart(t);
   if (o.punct) t = punct(t, ctx, st);
@@ -1459,6 +1650,30 @@ const TELLS = [/\b(?:delve|tapestry|testament|realm|leverage[sd]?|leveraging|sea
   /\bit is (?:important|essential|crucial|vital|worth) (?:to )?(?:note|noting|mention|mentioning|remember)\b/gi,
   /\bin today['’]s [\w -]{2,30}?(?:world|age|era|landscape|market)\b/gi, /\bin order to\b|\bprior to\b|\butili[sz]e\b/gi, /—/g];
 function tells(s) { const t = plainOf(s); let n = 0; TELLS.forEach(re => { const m = t.match(re); if (m) n += m.length; }); return n; }
+// our own reading-style score (0-100). It is NOT an AI-detector result.
+function humanScore(txt, words, lens, spread) {
+  if (words < 25) return null;
+  let sc = 100;
+  const per100 = words / 100;
+  sc -= Math.min(40, (tells(txt) / per100) * 7);                          // template phrases
+  if (lens.length >= 4) sc -= Math.max(0, (5.5 - spread)) * 3.2;           // sentence lengths all alike
+  const contr = (txt.match(/\b\w+['’](?:t|re|ll|ve|s|d|m)\b/g) || []).length;
+  if (contr / per100 < 0.8) sc -= 7;                                       // no contractions at all
+  let run = 0, worst = 0, prev = '';
+  txt.split(/\n/).forEach(line => splitSentences(protect(line, [])).forEach(x => { const f = (x.text.match(/[A-Za-z']+/) || [''])[0].toLowerCase(); if (f && f === prev) run++; else run = 0; worst = Math.max(worst, run); prev = f; }));
+  sc -= Math.min(15, worst * 5);                                           // same opener again and again
+  const avg = words / Math.max(1, lens.length);
+  if (avg > 22) sc -= Math.min(12, (avg - 22) * 1.5);                      // long, heavy sentences
+  return Math.max(0, Math.min(100, Math.round(sc)));
+}
+function toneOf(txt, words) {
+  if (words < 15) return null;
+  const per100 = words / 100;
+  const casual = (txt.match(/\b\w+['’](?:t|re|ll|ve|m|d)\b/g) || []).length + (txt.match(/!/g) || []).length * 1.5 + (txt.match(/\b(?:hey|thanks|awesome|cool|stuff|kids|gonna|wanna|super|totally)\b/gi) || []).length * 1.2;
+  const formal = (txt.match(/\b(?:hereby|furthermore|moreover|therefore|thus|shall|pursuant|accordingly|nevertheless|regarding|thereof|herein|whereas|in accordance with|prior to|commence|utili[sz]e)\b/gi) || []).length * 2 + (txt.match(/\b(?:do not|cannot|will not|is not|are not)\b/gi) || []).length * 0.8;
+  const d = (casual - formal) / per100;
+  return d > 3.2 ? 'Casual' : d < 0.9 ? 'Formal' : 'Neutral';
+}
 function measure(s) {
   const txt = plainOf(s);
   const words = txt.match(/[A-Za-z0-9'’-]+/g) || [];
@@ -1471,18 +1686,25 @@ function measure(s) {
   txt.split('\n').forEach(line => { if (line.trim()) splitSentences(protect(line, [])).forEach(x => { const n = wc(x.text); if (n) lens.push(n); }); });
   let spread = 0;
   if (lens.length > 1) { const mean = lens.reduce((a, b) => a + b, 0) / lens.length; spread = Math.sqrt(lens.reduce((a, b) => a + (b - mean) * (b - mean), 0) / lens.length); }
-  return { words: nw, sentences: sentences, avg: nw ? Math.round(nw / sentences * 10) / 10 : 0, ease: Math.max(0, Math.min(100, ease)), spread: Math.round(spread * 10) / 10, tells: tells(s) };
+  return { words: nw, sentences: sentences, avg: nw ? Math.round(nw / sentences * 10) / 10 : 0, ease: Math.max(0, Math.min(100, ease)), spread: Math.round(spread * 10) / 10, tells: tells(s), score: humanScore(txt, nw, lens, spread), tone: toneOf(txt, nw) };
 }
 
 // ---------- public ----------
 function humanize(input, opts) {
-  opts = Object.assign({ level: 2, tone: 'friendly', format: 'auto', words: true, filler: true, contractions: true, punct: true, split: true, rhythm: true, seed: 1 }, opts || {});
+  opts = Object.assign({ level: 2, tone: 'friendly', format: 'auto', words: true, filler: true, contractions: true, punct: true, split: true, rhythm: true, seed: 1, mode: 'standard', variety: 0, freeze: [], spelling: 'keep' }, opts || {});
+  const mp = MODE_PRESET[opts.mode] || {};
+  Object.keys(mp).forEach(k => { opts[k] = mp[k]; });
+  if (opts.mode === 'creative') opts.variety = Math.max(opts.variety || 0, 0.6);
+  if (opts.mode === 'fluency') opts.level = 1;
   const rand = makeRng(opts.seed);
+  FREEZE = (opts.freeze || []).map(x => String(x).trim()).filter(Boolean).slice(0, 40)
+    .map(x => new RegExp((/^\w/.test(x) ? '(?<![A-Za-z0-9])' : '') + x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (/\w$/.test(x) ? '(?![A-Za-z0-9])' : ''), 'gi'));
+  try {
   const isHtml = opts.format === 'html' || (opts.format === 'auto' && /<\/?(?:p|div|h[1-6]|ul|ol|li|br|strong|em|b|i|a|span|table|section)\b[^>]*>/i.test(input));
   const curly = /[’]/.test(input) && !/'/.test(input);
   const pc = { 1: 0.6, 2: 0.9, 3: 1 }[opts.level];
   const ctx = {
-    opts: opts, level: opts.level, tone: opts.tone, rand: rand, last: {},
+    opts: opts, level: opts.level, tone: opts.tone, rand: rand, last: {}, mode: opts.mode, variety: Math.max(0, Math.min(1, +opts.variety || 0)),
     firstPerson: /\b(?:we|our|us|we're|we'll|we've)\b/i.test(input),
     legal: /\b(?:governing law|jurisdiction|liabilit\w*|indemnif\w*|arbitration|hereby|terms (?:and|&) conditions|privacy policy|refund policy|binding|disclaimer)\b/i.test(input),
     pContr: opts.tone === 'professional' ? pc * 0.4 : opts.tone === 'casual' ? Math.max(pc, 0.95) : pc,
@@ -1496,13 +1718,15 @@ function humanize(input, opts) {
   const changes = Object.keys(st.log).map(k => ({ what: k, n: st.log[k] })).sort((a, b) => b.n - a.n);
   const notes = [];
   if (opts.tone === 'casual' && ctx.legal) notes.push('This reads like legal or policy text, so casual openers were skipped. Casual wording does not belong in terms or policies.');
-  return {
+  const result = {
     text: text, html: isHtml, notes: notes, before: before, after: after, changes: changes,
-    counts: { words: (st.swap || 0), ai: (st.ai || 0), filler: (st.filler || 0), transition: (st.transition || 0), contractions: (st.contr || 0), split: (st.split || 0), punct: (st.punct || 0), flavor: (st.flavor || 0), rhythm: (st.rhythm || 0), voice: (st.voice || 0) }
+    counts: { words: (st.swap || 0), ai: (st.ai || 0), filler: (st.filler || 0), transition: (st.transition || 0), contractions: (st.contr || 0), split: (st.split || 0), punct: (st.punct || 0), flavor: (st.flavor || 0), rhythm: (st.rhythm || 0), voice: (st.voice || 0), syn: (st.syn || 0), spell: (st.spell || 0), formal: (st.formal || 0) }
   };
+  return result;
+  } finally { FREEZE = []; }
 }
 
-root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
+root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _rules: RULES };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
@@ -1555,13 +1779,31 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     var doc = new DOMParser().parseFromString('<div>' + html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|li|h[1-6]|div|tr)>/gi, '$&\n') + '</div>', 'text/html');
     return doc.body.textContent.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
-  var lastHtml = false, variant = 0;
+  var lastHtml = false, variant = 0, mode = 'standard';
+  var MODE_HINT = {
+    standard: 'Plain words, no filler, natural rhythm. A good default for most text.',
+    fluency: 'Light touch: smooths flow and awkward connectors, keeps your wording.',
+    formal: 'Spells out contractions and uses fuller, more careful wording. Good for policies and business emails.',
+    simple: 'Shorter words and shorter sentences. Easier to read at a glance.',
+    shorten: 'Cuts padding words and repeated ideas to make the text tighter.',
+    creative: 'Rewrites harder and swaps more words for alternatives. Read it for meaning afterwards.'
+  };
+  var MODE_NAME = { standard: 'Standard', fluency: 'Fluency', formal: 'Formal', simple: 'Simple', shorten: 'Shorten', creative: 'Creative' };
+  function setMode(m) {
+    if (!MODE_HINT[m]) m = 'standard';
+    mode = m;
+    Array.prototype.forEach.call(document.querySelectorAll('#hzModes button'), function (b) { var on = b.getAttribute('data-mode') === m; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    g('hzModeHint').textContent = MODE_HINT[m];
+  }
+  setMode('standard');
 
   function readOpts() {
     return {
       level: parseInt(g('hzLevel').value, 10), tone: g('hzTone').value, format: g('hzFormat').value,
       words: g('hzWords').checked, filler: g('hzFiller').checked, contractions: g('hzContr').checked,
-      split: g('hzSplit').checked, punct: g('hzPunct').checked, rhythm: g('hzRhythm').checked
+      split: g('hzSplit').checked, punct: g('hzPunct').checked, rhythm: g('hzRhythm').checked,
+      mode: mode, variety: parseInt(g('hzVar').value, 10) / 100, spelling: g('hzSpell').value,
+      freeze: g('hzFreeze').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean)
     };
   }
   function chip(txt) { var s = document.createElement('span'); s.className = 'chip'; s.textContent = txt; return s; }
@@ -1576,6 +1818,11 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     o.seed = fnv(src + '|' + o.level + o.tone) + variant * 7919;
     var r;
     try { r = Humanizer.humanize(src, o); } catch (e) { note('Sorry, something in that text could not be processed'); return; }
+    show(r, src, o);
+    pushHist(src, r.text, o.mode);
+  }
+  function show(r, src, o) {
+    closeReview();
     lastHtml = r.html;
     g('hzOut').value = r.text;
     // stats
@@ -1583,6 +1830,8 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     st.appendChild(chip(r.before.words + ' → ' + r.after.words + ' words'));
     st.appendChild(chip('Avg sentence ' + r.before.avg + ' → ' + r.after.avg + ' words'));
     st.appendChild(chip('Reading ease ' + r.before.ease + ' → ' + r.after.ease));
+    if (r.before.score !== null && r.after.score !== null) st.appendChild(chip('Human-style score ' + r.before.score + ' → ' + r.after.score));
+    if (r.before.tone && r.after.tone) st.appendChild(chip('Tone ' + (r.before.tone === r.after.tone ? r.after.tone : r.before.tone + ' → ' + r.after.tone)));
     if (r.before.tells || r.after.tells) st.appendChild(chip('Stock phrases ' + r.before.tells + ' → ' + r.after.tells));
     var c = r.counts;
     if (c.words + c.ai) st.appendChild(chip(plural(c.words + c.ai, 'stiff word or phrase swapped', 'stiff words or phrases swapped')));
@@ -1592,6 +1841,9 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     if (c.split) st.appendChild(chip(plural(c.split, 'long sentence split', 'long sentences split')));
     if (c.punct) st.appendChild(chip(plural(c.punct, 'dash or semicolon tidied', 'dashes or semicolons tidied')));
     if (c.flavor) st.appendChild(chip(plural(c.flavor, 'casual opener added', 'casual openers added')));
+    if (c.syn) st.appendChild(chip(plural(c.syn, 'word swapped for a close alternative', 'words swapped for close alternatives')));
+    if (c.spell) st.appendChild(chip(plural(c.spell, 'spelling changed', 'spellings changed')));
+    if (c.formal) st.appendChild(chip(plural(c.formal, 'contraction written out', 'contractions written out')));
     if (c.voice) st.appendChild(chip(plural(c.voice, 'passive sentence made active', 'passive sentences made active')));
     if (c.rhythm) st.appendChild(chip(plural(c.rhythm, 'rhythm change', 'rhythm changes')));
     // change list
@@ -1614,9 +1866,9 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
   }
 
   // ----- save / restore -----
-  var IDS = ['hzIn', 'hzLevel', 'hzTone', 'hzFormat'], CHK = ['hzWords', 'hzFiller', 'hzContr', 'hzSplit', 'hzPunct', 'hzRhythm'];
-  function saveHz() { try { var o = {}; IDS.forEach(function (i) { o[i] = g(i).value; }); CHK.forEach(function (i) { o[i] = g(i).checked; }); localStorage.setItem('policyGenHZ1', JSON.stringify(o)); } catch (e) {} }
-  function loadHz() { try { var o = JSON.parse(localStorage.getItem('policyGenHZ1') || 'null'); if (!o) return; IDS.forEach(function (i) { if (o[i] !== undefined) g(i).value = o[i]; }); CHK.forEach(function (i) { if (o[i] !== undefined) g(i).checked = !!o[i]; }); } catch (e) {} }
+  var IDS = ['hzIn', 'hzLevel', 'hzTone', 'hzFormat', 'hzVar', 'hzFreeze', 'hzSpell'], CHK = ['hzWords', 'hzFiller', 'hzContr', 'hzSplit', 'hzPunct', 'hzRhythm'];
+  function saveHz() { try { var o = {}; IDS.forEach(function (i) { o[i] = g(i).value; }); CHK.forEach(function (i) { o[i] = g(i).checked; }); o.mode = mode; localStorage.setItem('policyGenHZ1', JSON.stringify(o)); } catch (e) {} }
+  function loadHz() { try { var o = JSON.parse(localStorage.getItem('policyGenHZ1') || 'null'); if (!o) return; IDS.forEach(function (i) { if (o[i] !== undefined) g(i).value = o[i]; }); CHK.forEach(function (i) { if (o[i] !== undefined) g(i).checked = !!o[i]; }); if (o.mode) setMode(o.mode); g('hzVarVal').textContent = g('hzVar').value + '%'; } catch (e) {} }
   loadHz();
 
   function count() { var n = words(g('hzIn').value); g('hzInCount').textContent = n + (n === 1 ? ' word' : ' words'); }
@@ -1629,7 +1881,7 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
   g('hzSample').onclick = function () { g('hzIn').value = SAMPLE; variant = 0; count(); run(); };
   g('hzClear').onclick = function () {
     g('hzIn').value = ''; g('hzOut').value = ''; g('hzStats').innerHTML = ''; g('hzChanges').innerHTML = '';
-    g('hzChangesWrap').hidden = true; g('hzPrevWrap').hidden = true; g('hzCopyTxt').hidden = true; variant = 0; count(); saveHz();
+    closeReview(); g('hzCmpWrap').hidden = true; g('hzChangesWrap').hidden = true; g('hzPrevWrap').hidden = true; g('hzCopyTxt').hidden = true; variant = 0; count(); saveHz();
   };
   g('hzCopy').onclick = function () { var v = g('hzOut').value; if (!v.trim()) { note('Nothing to copy yet'); return; } copy(v, lastHtml ? 'HTML copied' : 'Text copied'); };
   g('hzCopyTxt').onclick = function () { var v = g('hzOut').value; if (!v.trim()) { note('Nothing to copy yet'); return; } copy(htmlToText(v), 'Plain text copied'); };
@@ -1640,6 +1892,151 @@ root.Humanizer = { humanize: humanize, measure: measure, _rules: RULES };
     a.download = 'humanized-text' + (lastHtml ? '.html' : '.txt'); a.click();
   };
   g('hzReuse').onclick = function () { var v = g('hzOut').value; if (!v.trim()) { note('Nothing to reuse yet'); return; } g('hzIn').value = v; variant = 0; count(); note('Moved to the input box'); };
+
+  // ----- mode chips, variety slider -----
+  Array.prototype.forEach.call(document.querySelectorAll('#hzModes button'), function (b) { b.onclick = function () { setMode(b.getAttribute('data-mode')); variant = 0; saveHz(); if (g('hzIn').value.trim() && g('hzOut').value.trim()) run(); }; });
+  g('hzVar').addEventListener('input', function () { g('hzVarVal').textContent = g('hzVar').value + '%'; });
+  g('hzVar').addEventListener('change', function () { saveHz(); });
+  ['hzFreeze', 'hzSpell'].forEach(function (i) { g(i).addEventListener('change', saveHz); });
+
+  // ----- paste and upload -----
+  g('hzPaste').onclick = function () {
+    if (!navigator.clipboard || !navigator.clipboard.readText) { note('Your browser blocks clipboard reading. Paste with Ctrl/⌘ + V instead.'); return; }
+    navigator.clipboard.readText().then(function (t) { if (!t.trim()) { note('The clipboard is empty'); return; } g('hzIn').value = t; variant = 0; count(); note('Pasted'); })
+      .catch(function () { note('Your browser blocked clipboard access. Paste with Ctrl/⌘ + V instead.'); });
+  };
+  g('hzUpload').onclick = function () { g('hzFile').click(); };
+  g('hzFile').addEventListener('change', function () {
+    var f = g('hzFile').files && g('hzFile').files[0]; g('hzFile').value = '';
+    if (!f) return;
+    if (!/\.(txt|md|html?)$/i.test(f.name) && !/^text\//.test(f.type)) { note('Upload a .txt, .md or .html file. For Word files, copy the text and paste it.'); return; }
+    if (f.size > 2000000) { note('That file is over 2 MB. Try a smaller one.'); return; }
+    var fr = new FileReader();
+    fr.onload = function () { g('hzIn').value = String(fr.result); variant = 0; count(); note('Loaded ' + f.name); };
+    fr.onerror = function () { note('That file could not be read'); };
+    fr.readAsText(f);
+  });
+
+  // ----- review: highlight changes, click a word to pick another -----
+  var revOpen = false, revTokens = [];
+  function lcsChanged(a, b) {
+    // returns a Set of indexes in b that do not appear in order in a
+    var n = a.length, m = b.length, changed = new Set();
+    if (!n || !m || n * m > 4000000) { return changed; }
+    var w = m + 1, T = new Uint16Array((n + 1) * w), i, j;
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--) T[i * w + j] = a[i] === b[j] ? T[(i + 1) * w + j + 1] + 1 : Math.max(T[(i + 1) * w + j], T[i * w + j + 1]);
+    var keep = new Set(); i = 0; j = 0;
+    while (i < n && j < m) { if (a[i] === b[j]) { keep.add(j); i++; j++; } else if (T[(i + 1) * w + j] >= T[i * w + j + 1]) i++; else j++; }
+    for (j = 0; j < m; j++) if (!keep.has(j)) changed.add(j);
+    return changed;
+  }
+  function wordKey(x) { return x.toLowerCase().replace(/’/g, "'"); }
+  function renderReview() {
+    var box = g('hzReview'); box.innerHTML = '';
+    var src = (g('hzIn').value.match(/[A-Za-z][A-Za-z'’-]*/g) || []).map(wordKey);
+    var outWords = [], idx = [];
+    revTokens.forEach(function (t, k) { if (t.w) { idx[outWords.length] = k; outWords.push(wordKey(t.t)); } });
+    var ch = lcsChanged(src, outWords), changedTok = new Set();
+    ch.forEach(function (j) { changedTok.add(idx[j]); });
+    revTokens.forEach(function (t, k) {
+      if (!t.w) { box.appendChild(document.createTextNode(t.t)); return; }
+      var alts = Humanizer.synonyms(t.t), el;
+      if (changedTok.has(k)) { el = document.createElement('mark'); } else { el = document.createElement('span'); }
+      el.textContent = t.t;
+      if (alts.length) { el.classList.add('w'); el.setAttribute('data-k', k); el.title = 'Click for other words'; }
+      box.appendChild(el);
+    });
+  }
+  function closePop() { var p = document.querySelector('.pop'); if (p) p.remove(); }
+  function openReview() {
+    if (!g('hzOut').value.trim()) { note('Nothing to review yet'); return; }
+    if (lastHtml) { note('Review works on plain text. HTML output has its own preview below.'); return; }
+    revTokens = [];
+    g('hzOut').value.replace(/([A-Za-z][A-Za-z'’-]*)|([^A-Za-z]+)/g, function (m, w, o) { revTokens.push({ t: m, w: !!w }); return m; });
+    renderReview();
+    g('hzOut').hidden = true; g('hzReview').hidden = false; revOpen = true; g('hzRev').textContent = 'Edit text';
+  }
+  function closeReview() { closePop(); if (!revOpen) return; revOpen = false; g('hzReview').hidden = true; g('hzOut').hidden = false; g('hzRev').textContent = 'Review changes'; }
+  g('hzRev').onclick = function () { if (revOpen) closeReview(); else openReview(); };
+  g('hzReview').addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('.w') : null;
+    closePop();
+    if (!el) return;
+    var k = +el.getAttribute('data-k'), alts = Humanizer.synonyms(revTokens[k].t);
+    var pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'menu');
+    var t = document.createElement('div'); t.className = 't'; t.textContent = 'Other words'; pop.appendChild(t);
+    alts.forEach(function (a) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = a;
+      b.onclick = function () {
+        var cur = revTokens[k].t, prev = revTokens[k - 1];
+        revTokens[k].t = a;
+        // keep "a" and "an" right in front of the new word
+        if (prev && !prev.w && /\s$/.test(prev.t) && revTokens[k - 2] && /^(a|an)$/i.test(revTokens[k - 2].t)) {
+          var art = revTokens[k - 2].t, want = /^(?:[aeiou]|hour|honest)/i.test(a) && !/^(?:uni|use|one|eu)/i.test(a) ? 'an' : 'a';
+          revTokens[k - 2].t = art.charAt(0) === 'A' ? want.charAt(0).toUpperCase() + want.slice(1) : want;
+        }
+        g('hzOut').value = revTokens.map(function (x) { return x.t; }).join('');
+        closePop(); renderReview(); saveHz();
+      };
+      pop.appendChild(b);
+    });
+    document.body.appendChild(pop);
+    var r = el.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8)) + 'px';
+    pop.style.top = Math.min(r.bottom + 6, window.innerHeight - pop.offsetHeight - 8) + 'px';
+    e.stopPropagation();
+  });
+  document.addEventListener('click', function (e) { if (!e.target.closest || !e.target.closest('.pop')) closePop(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePop(); });
+
+  // ----- compare modes -----
+  g('hzCmpBtn').onclick = function () {
+    var src = g('hzIn').value;
+    if (!src.trim()) { note('Paste some text first'); return; }
+    var base = readOpts(), box = g('hzCmp'); box.innerHTML = '';
+    Object.keys(MODE_NAME).forEach(function (m) {
+      var o = Object.assign({}, base, { mode: m }); o.seed = fnv(src + '|' + o.level + o.tone) + variant * 7919;
+      var r; try { r = Humanizer.humanize(src, o); } catch (e) { return; }
+      var d = document.createElement('div');
+      var s = document.createElement('strong'); s.textContent = MODE_NAME[m]; d.appendChild(s);
+      var meta = document.createElement('div'); meta.className = 'meta';
+      meta.textContent = r.after.words + ' words' + (r.after.score !== null ? ' · human-style score ' + r.after.score : '') + (r.after.tone ? ' · ' + r.after.tone.toLowerCase() : '');
+      d.appendChild(meta);
+      var tx = document.createElement('div'); tx.className = 'tx';
+      if (r.html) tx.textContent = htmlToText(r.text); else tx.textContent = r.text;
+      d.appendChild(tx);
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Use this version';
+      b.onclick = function () { setMode(m); show(r, src, o); saveHz(); note(MODE_NAME[m] + ' version loaded'); };
+      d.appendChild(b); box.appendChild(d);
+    });
+    g('hzCmpWrap').hidden = false;
+    g('hzCmpWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  // ----- history (kept in this browser only) -----
+  var HKEY = 'policyGenHZH';
+  function readHist() { try { var a = JSON.parse(localStorage.getItem(HKEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function pushHist(src, out, m) {
+    var a = readHist().filter(function (x) { return !(x.src === src && x.out === out); });
+    a.unshift({ t: Date.now(), m: m, src: src.slice(0, 20000), out: out.slice(0, 20000) });
+    a = a.slice(0, 15);
+    try { localStorage.setItem(HKEY, JSON.stringify(a)); } catch (e) { try { localStorage.setItem(HKEY, JSON.stringify(a.slice(0, 3))); } catch (e2) {} }
+    renderHist();
+  }
+  function renderHist() {
+    var a = readHist(), box = g('hzHist'); box.innerHTML = '';
+    g('hzHistWrap').hidden = !a.length;
+    a.forEach(function (x) {
+      var d = document.createElement('div');
+      var m = document.createElement('span'); m.className = 'm';
+      m.textContent = new Date(x.t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' · ' + (MODE_NAME[x.m] || 'Standard') + ' · ' + x.out.replace(/\s+/g, ' ').slice(0, 70);
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Restore';
+      b.onclick = function () { g('hzIn').value = x.src; count(); setMode(x.m); closeReview(); g('hzOut').value = x.out; lastHtml = /<\/?(?:p|div|h[1-6]|ul|ol|li|br|strong|em|a|span)\b/i.test(x.out); g('hzCopyTxt').hidden = !lastHtml; g('hzStats').innerHTML = ''; note('Restored'); };
+      d.appendChild(m); d.appendChild(b); box.appendChild(d);
+    });
+    if (a.length) { var c = document.createElement('button'); c.type = 'button'; c.textContent = 'Clear history'; c.style.alignSelf = 'flex-start'; c.onclick = function () { try { localStorage.removeItem(HKEY); } catch (e) {} renderHist(); }; box.appendChild(c); }
+  }
+  renderHist();
   CHK.concat(['hzLevel', 'hzTone', 'hzFormat']).forEach(function (i) { g(i).addEventListener('change', saveHz); });
 })();
 
