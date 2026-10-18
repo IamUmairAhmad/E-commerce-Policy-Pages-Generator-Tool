@@ -190,6 +190,29 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
     <input id="currency_in" placeholder="Currency code, e.g. PKR" style="display:none;margin-top:6px">
     <div class="hint" id="curHint"></div>
 
+    <h2 style="margin-top:22px">Legal details</h2>
+    <div class="hint" id="legalNeeds" style="margin-top:0">Used for the Legal Notice page. Leave a field empty and that line is left out.</div>
+    <div class="row">
+      <div><label for="legalName">Legal company name <small>(if different)</small></label><input id="legalName" placeholder="Azora Glam LLC"></div>
+      <div><label for="legalForm">Legal form</label><input id="legalForm" list="legalForms" placeholder="e.g. LLC, Ltd, GmbH"><datalist id="legalForms"><option>Sole proprietorship</option><option>Limited liability company (LLC)</option><option>Private limited company (Ltd)</option><option>GmbH</option><option>SARL</option><option>S.r.l.</option><option>B.V.</option><option>Pty Ltd</option><option>Corporation (Inc.)</option><option>Partnership</option></datalist></div>
+    </div>
+    <div class="row">
+      <div><label for="regNo">Registration number</label><input id="regNo" placeholder="Company or trade register number"></div>
+      <div><label for="vatId">VAT / tax ID</label><input id="vatId" placeholder="e.g. DE123456789"></div>
+    </div>
+    <label for="registry">Register and place <small>(optional)</small></label><input id="registry" placeholder="e.g. Amtsgericht München, or Companies House, England and Wales">
+    <div class="row">
+      <div><label for="rep">Authorised representative</label><input id="rep" placeholder="Defaults to the owner name"></div>
+      <div><label for="contentResp">Responsible for content</label><input id="contentResp" placeholder="Defaults to the owner name"></div>
+    </div>
+    <div class="row">
+      <div><label for="capital">Share capital <small>(companies only)</small></label><input id="capital" placeholder="e.g. EUR 10,000"></div>
+      <div><label for="authority">Licence or supervisory authority</label><input id="authority" placeholder="Only if your trade is regulated"></div>
+    </div>
+    <label for="hosting">Website host <small>(name, address, phone; required in France)</small></label><input id="hosting" placeholder="e.g. Shopify International Ltd, Dublin, Ireland">
+    <label for="adr">Consumer dispute resolution body <small>(optional)</small></label><input id="adr" placeholder="Name, address and website of your mediator or ADR body">
+    <label for="grievance">Grievance officer <small>(India and similar)</small></label><input id="grievance" placeholder="Name, email and phone">
+
     <h2 style="margin-top:22px">Accepted payment methods</h2>
     <div class="pay" id="pay"></div>
     <label>Other payment methods <small>(comma separated)</small></label><input id="otherPay" placeholder="e.g. Afterpay, Klarna">
@@ -395,7 +418,7 @@ const TIMEZONES = [
 ].map(([o,n])=>`(GMT${o}) ${n}`);
 
 const PAYMENTS = ['Visa','Mastercard','American Express','Discover','PayPal','Apple Pay','Google Pay','Shop Pay','Cash on Delivery','Bank Transfer'];
-const PAGES = [['about','About Us'],['contact','Contact Us'],['faq','FAQs'],['shipping','Shipping Policy'],['privacy','Privacy Policy'],['refund','Refund & Returns Policy'],['terms','Terms & Conditions'],['payment','Payment Policy']];
+const PAGES = [['about','About Us'],['contact','Contact Us'],['faq','FAQs'],['shipping','Shipping Policy'],['privacy','Privacy Policy'],['refund','Refund & Returns Policy'],['terms','Terms & Conditions'],['payment','Payment Policy'],['legal','Legal Notice']];
 
 const COMBOS = {
   hours:{label:'Business Hours',ph:'e.g. Monday - Friday, 10:00 AM - 6:00 PM',opts:['Monday - Friday, 09:00 AM - 5:00 PM','Monday - Saturday, 09:00 AM - 5:00 PM','Monday - Sunday, 09:00 AM - 5:00 PM']},
@@ -408,7 +431,7 @@ const COMBOS = {
   methods:{label:'Shipping Methods',ph:'e.g. Standard, Express',opts:['Standard','Express']}
 };
 const COMBO_IDS = Object.keys(COMBOS);
-const FIELDS = ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','countries','countries_in','currency','currency_in','otherPay','cutoff','shipcost','carriers','restrictions','acceptReturns','exchanges','condition','retLabel','restockType','restockAmt'];
+const FIELDS = ['businessName','website','email','phone','address','tz','founded','products','brandMsg','ownerName','ownerTitle','ownerBio','team','legalName','legalForm','regNo','registry','capital','vatId','rep','contentResp','authority','adr','grievance','hosting','countries','countries_in','currency','currency_in','otherPay','cutoff','shipcost','carriers','restrictions','acceptReturns','exchanges','condition','retLabel','restockType','restockAmt'];
 
 // ================= BUILD FORM CONTROLS =================
 COMBO_IDS.forEach(id=>{
@@ -537,9 +560,13 @@ function getData(){
   e.ownerBioHtml = raw.ownerBio ? linkify(paras(raw.ownerBio)) : '';
   e.teamHtml = raw.team ? linkify(paras(raw.team)) : '';
   e.contactForm = $('contactForm').checked;
+  e.legalName = esc(g('legalName') || raw.businessName || 'our store'); e.hasLegalName = !!g('legalName');
+  e.legalForm = esc(g('legalForm')); e.regNo = esc(g('regNo')); e.registry = esc(g('registry')); e.capital = esc(g('capital')); e.vatId = esc(g('vatId'));
+  e.rep = esc(g('rep') || raw.ownerName); e.contentResp = esc(g('contentResp') || g('rep') || raw.ownerName); e.contentExplicit = !!g('contentResp');
+  e.authority = esc(g('authority')); e.adr = linkify(esc(g('adr'))); e.grievance = linkify(esc(g('grievance'))); e.hosting = linkify(esc(g('hosting')));
   // location / currency
   e.country = esc(country || 'our home country');
-  e.regions = e.country; e.law = e.country;
+  e.regions = e.country; e.law = e.country; e.countryRaw = country; e.countryThe = ['United States','United Kingdom','Netherlands','United Arab Emirates','Philippines'].includes(country) ? 'the '+e.country : e.country; e.legalKey = legalKey(country);
   e.currency = esc(cur); e.hasCur = !!cur;
   e.curName = esc(cur ? currencyName(cur) : '');
   e.curLabel = cur ? `${e.curName}${e.curName!==e.currency?' ('+e.currency+')':''}` : '';
@@ -879,7 +906,156 @@ ${d.bank?`<h2>Bank transfer</h2>\n<p>Orders paid by bank transfer are processed 
 <p>Questions about payments? Email ${emailLink(d)}${d.hasPhone?` or call ${d.phone}`:''}.</p>`;
 }
 
-const BUILD = {about,contact,faq,shipping,privacy,refund,terms,payment};
+// ================= LEGAL NOTICE (written per country and region) =================
+const LEGAL_KEY = {
+  'Germany':'de','Austria':'at','Switzerland':'ch','France':'fr','Italy':'it','Spain':'es','Netherlands':'nl','Belgium':'be','United Kingdom':'gb','Ireland':'ie','Poland':'pl',
+  'Czechia':'eu','Denmark':'eu','Finland':'eu','Greece':'eu','Hungary':'eu','Portugal':'eu','Romania':'eu','Slovakia':'eu','Sweden':'eu','Norway':'eea',
+  'United States':'us','Canada':'ca','Australia':'au','New Zealand':'nz','India':'in','Brazil':'br','Japan':'jp','South Korea':'kr','United Arab Emirates':'ae','Saudi Arabia':'sa',
+  'Malaysia':'my','Singapore':'sg','South Africa':'za'
+};
+const LEGAL_REGION = {
+  eu:'the European Union', eea:'the European Economic Area', gb:'the United Kingdom', us:'North America', ca:'North America', au:'Australia and New Zealand', nz:'Australia and New Zealand',
+  in:'South Asia', my:'South-East Asia', sg:'South-East Asia', jp:'East Asia', kr:'East Asia', ae:'the Gulf region', sa:'the Gulf region', br:'Latin America', za:'Southern Africa'
+};
+const LEGAL_REGION_BY_COUNTRY = {
+  'Argentina':'Latin America','Chile':'Latin America','Colombia':'Latin America','Ecuador':'Latin America','Mexico':'Latin America','Paraguay':'Latin America','Peru':'Latin America','Uruguay':'Latin America',
+  'Egypt':'Africa','Ethiopia':'Africa','Ghana':'Africa','Kenya':'Africa','Mauritius':'Africa','Nigeria':'Africa','Tanzania':'Africa','Uganda':'Africa','Zambia':'Africa','Zimbabwe':'Africa',
+  'Bahrain':'the Middle East','Israel':'the Middle East','Jordan':'the Middle East','Kuwait':'the Middle East','Lebanon':'the Middle East','Oman':'the Middle East','Turkey':'the Middle East',
+  'Belarus':'Eastern Europe and Central Asia','Georgia':'Eastern Europe and Central Asia','Kazakhstan':'Eastern Europe and Central Asia','Russia':'Eastern Europe and Central Asia','Ukraine':'Eastern Europe and Central Asia','Uzbekistan':'Eastern Europe and Central Asia',
+  'Hong Kong':'East Asia','Taiwan':'East Asia','Indonesia':'South-East Asia','Philippines':'South-East Asia','Thailand':'South-East Asia','Vietnam':'South-East Asia','Pakistan':'South Asia','Bangladesh':'South Asia','Sri Lanka':'South Asia','Qatar':'the Gulf region'
+};
+const EU_NOTE = (d,law) => `<p>Because ${d.legalName||d.businessName} sells into ${law}, we also follow EU-wide rules on e-commerce (Directive 2000/31/EC) and consumer rights (Directive 2011/83/EU). That includes clear pre-contract information, the right to withdraw from distance purchases and statutory guarantee rights.</p>`;
+const RIGHTS = d => `<p>Nothing on this website limits the statutory rights you have as a consumer in ${d.countryThe}. Our Refund &amp; Returns Policy and Terms &amp; Conditions explain how returns and refunds work in practice.</p>`;
+const ADR = d => d.adr ? `<p><strong>Consumer dispute resolution:</strong> ${d.adr}</p>` : '';
+const LEGAL = {
+  de:{law:'§ 5 of the German Digital Services Act (Digitale-Dienste-Gesetz, DDG)', alt:'In Germany this page is also called the Impressum.', addr:'Business address', reg:'Commercial register', no:'Register number', vat:'VAT ID (USt-IdNr.)', auth:'Supervisory authority', content:' (§ 18 (2) of the German Interstate Media Treaty)',
+    need:'legal company name and form, authorised representative, commercial register and number (if registered), VAT ID (if you have one) and the person responsible for content.',
+    notes:d=>[EU_NOTE(d,'Germany'),RIGHTS(d),ADR(d)]},
+  at:{law:'§ 5 of the Austrian E-Commerce Act (ECG), § 14 of the Austrian Business Code (UGB) and § 63 of the Trade Regulation Act (GewO)', alt:'In Austria this page is also called the Impressum.', addr:'Business address', reg:'Commercial court (Firmenbuchgericht)', no:'Company register number (FN)', vat:'VAT ID (UID)', auth:'Trade authority', content:' (§ 25 of the Austrian Media Act)',
+    need:'legal company name and form, authorised representative, company register number and court, VAT ID (UID), trade authority and the person responsible for content.',
+    notes:d=>[EU_NOTE(d,'Austria'),RIGHTS(d),ADR(d)]},
+  ch:{law:'Article 3 (1) (s) of the Swiss Federal Act against Unfair Competition (UWG)', alt:'In Switzerland this page is also called the Impressum.', addr:'Business address', reg:'Commercial register', no:'Company ID (UID)', vat:'VAT number (MWST)', auth:'Supervisory authority',
+    need:'legal company name and form, address, email, company ID (UID) and VAT number if you are VAT-registered.',
+    notes:d=>[RIGHTS(d),ADR(d)]},
+  fr:{law:'Article 6-III of the French Law for Confidence in the Digital Economy (LCEN, Law no. 2004-575 of 21 June 2004)', alt:'In France this page is called the Mentions légales.', addr:'Registered office', reg:'Trade and companies register (RCS)', no:'SIREN / SIRET number', vat:'Intra-community VAT number', auth:'Authority', content:' (directeur de la publication)', host:true,
+    need:'legal company name and form, share capital, registered office, RCS number and city, SIREN/SIRET, intra-community VAT number, publication director, website host (name, address and phone) and consumer mediator.',
+    notes:d=>[EU_NOTE(d,'France'),RIGHTS(d),ADR(d)]},
+  it:{law:'Article 7 of Italian Legislative Decree no. 70 of 9 April 2003', alt:'In Italy this page is also called Note legali.', addr:'Registered office', reg:'Chamber of Commerce', no:'REA number', vat:'Partita IVA',
+    need:'legal company name and form, registered office, REA number and Chamber of Commerce, share capital, Partita IVA and whether the company is in liquidation.',
+    notes:d=>[EU_NOTE(d,'Italy'),RIGHTS(d),ADR(d)]},
+  es:{law:'Article 10 of Spanish Law 34/2002 on Information Society Services and Electronic Commerce (LSSI-CE)', alt:'In Spain this page is also called the Aviso legal.', addr:'Registered address', reg:'Mercantile Registry', no:'Registry details', vat:'NIF / CIF',
+    need:'legal company name, registered address, NIF/CIF, and Mercantile Registry details (volume, folio and sheet) if you are a registered company.',
+    notes:d=>[EU_NOTE(d,'Spain'),RIGHTS(d),ADR(d)]},
+  nl:{law:'Article 3:15d of the Dutch Civil Code', alt:'', addr:'Business address', reg:'Chamber of Commerce', no:'KvK number', vat:'VAT number (BTW)',
+    need:'legal company name, visiting address, email, KvK number and BTW number.',
+    notes:d=>[EU_NOTE(d,'the Netherlands'),RIGHTS(d),ADR(d)]},
+  be:{law:'Book XII of the Belgian Code of Economic Law', alt:'', addr:'Registered office', reg:'Register of legal entities', no:'Enterprise number (BCE / KBO)', vat:'VAT number',
+    need:'legal company name and form, registered office, enterprise number (BCE/KBO), the register of legal entities (RPR/RPM) and VAT number.',
+    notes:d=>[EU_NOTE(d,'Belgium'),RIGHTS(d),ADR(d)]},
+  gb:{law:'the Companies Act 2006 and the Electronic Commerce (EC Directive) Regulations 2002', alt:'', addr:'Registered office', reg:'Registered in', no:'Company number', vat:'VAT number',
+    need:'registered company name, company number, country of registration, registered office address and VAT number. Sole traders need their name and a geographic address.',
+    notes:d=>[`<p>Your statutory rights under the Consumer Rights Act 2015 and the Consumer Contracts Regulations 2013 are not affected by anything on this website.</p>`,ADR(d)]},
+  ie:{law:'the Irish Companies Act 2014 and the European Communities (Directive 2000/31/EC) Regulations 2003', alt:'', addr:'Registered office', reg:'Registered in', no:'Company registration number (CRO)', vat:'VAT number',
+    need:'registered company name, CRO number, registered office, and VAT number.',
+    notes:d=>[EU_NOTE(d,'Ireland'),RIGHTS(d),ADR(d)]},
+  pl:{law:'the Polish Act of 18 July 2002 on Providing Services by Electronic Means', alt:'', addr:'Registered office', reg:'Register (KRS / CEIDG)', no:'KRS / CEIDG number', vat:'NIP (tax ID)',
+    need:'legal company name and form, registered office, KRS or CEIDG entry, NIP and REGON.',
+    notes:d=>[EU_NOTE(d,'Poland'),RIGHTS(d),ADR(d)]},
+  eu:{law:null, alt:'', addr:'Registered office', reg:'Trade register', no:'Registration number', vat:'VAT number',
+    need:'legal company name and form, registered address, trade register and number, VAT number and a contact email.',
+    notes:d=>[EU_NOTE(d,d.country),RIGHTS(d),ADR(d)]},
+  eea:{law:null, alt:'', addr:'Registered office', reg:'Business register', no:'Organisation number', vat:'VAT number',
+    need:'legal company name and form, registered address, business register number and VAT number.',
+    notes:d=>[RIGHTS(d),ADR(d)]},
+  us:{law:null, alt:'', addr:'Business address', reg:'State of registration', no:'Registration number', vat:'Tax ID',
+    need:'legal business name, business address and contact email. A state of registration and registration number are optional but build trust.',
+    notes:d=>[`<p><strong>Copyright complaints.</strong> If you believe something on this website infringes your copyright, email us${d.hasEmail?' at '+emailLink(d):''} with a description of the work, where it appears on our site and your contact details, and we will look into it promptly.</p>`,
+      `<p><strong>No professional advice.</strong> Information on this website is for general shopping and product information. It is not legal, medical or financial advice.</p>`]},
+  ca:{law:null, alt:'', addr:'Business address', reg:'Province of registration', no:'Business number (BN)', vat:'GST/HST number',
+    need:'legal business name, business address, contact email and, if you have them, your business number and GST/HST number.',
+    notes:d=>[`<p>Consumer protection laws in your province or territory, including Quebec's Consumer Protection Act where it applies, stay in force and are not limited by this notice.</p>`]},
+  au:{law:'the Australian Consumer Law', alt:'', addr:'Business address', reg:'Registered in', no:'ACN or registration number', vat:'ABN',
+    need:'legal business name, ABN, business address and contact email. Companies should also add their ACN.',
+    notes:d=>[`<p>Our goods come with guarantees that cannot be excluded under the Australian Consumer Law. You are entitled to a replacement or refund for a major failure and to compensation for any other reasonably foreseeable loss or damage. You are also entitled to have goods repaired or replaced if they fail to be of acceptable quality and the failure does not amount to a major failure.</p>`]},
+  nz:{law:'the Fair Trading Act 1986 and the Consumer Guarantees Act 1993', alt:'', addr:'Business address', reg:'Registered in', no:'NZBN', vat:'GST number',
+    need:'legal business name, NZBN, business address, contact email and GST number if you are GST-registered.',
+    notes:d=>[`<p>Nothing on this website limits your rights under the Consumer Guarantees Act 1993 or the Fair Trading Act 1986.</p>`]},
+  in:{law:'the Consumer Protection (E-Commerce) Rules, 2020', alt:'', addr:'Registered address', reg:'Registered with', no:'CIN / registration number', vat:'GSTIN',
+    need:'legal business name, registered address, GSTIN, contact details and a named grievance officer with contact details.',
+    notes:d=>[`<p>Complaints about an order or about this website are acknowledged within 48 hours and resolved within one month${d.grievance?', and you can reach our grievance officer using the details above':''}.</p>`,RIGHTS(d)]},
+  br:{law:'Brazilian Decree no. 7,962 of 2013 on electronic commerce', alt:'', addr:'Business address', reg:'Registered with', no:'CNPJ', vat:'State registration (Inscrição Estadual)',
+    need:'legal company name, CNPJ, business address, contact email and phone.',
+    notes:d=>[`<p>Under Brazilian consumer law (article 49 of the Consumer Defence Code), you may withdraw from a purchase made at a distance within 7 days of receiving the product.</p>`]},
+  jp:{law:"Japan's Act on Specified Commercial Transactions", alt:'In Japan this is the disclosure page required for online sales.', addr:'Address', reg:'Registered with', no:'Corporate number', vat:'Invoice registration number',
+    need:'seller name, representative, address, phone number, email, and where to find prices, payment, delivery and returns information.',
+    notes:d=>[`<p>Prices, accepted payment methods and timing, delivery times and shipping costs, and how returns and refunds work are set out in our Payment Policy, Shipping Policy and Refund &amp; Returns Policy.</p>`]},
+  kr:{law:'the Act on the Consumer Protection in Electronic Commerce', alt:'', addr:'Business address', reg:'Registered with', no:'Business registration number', vat:'Tax ID', auth:'Mail-order business report number',
+    need:'business name, representative, business registration number, mail-order business report number, address, phone and email.',
+    notes:d=>[RIGHTS(d)]},
+  ae:{law:'UAE Federal Decree-Law No. 15 of 2020 on Consumer Protection', alt:'', addr:'Business address', reg:'Licensing authority', no:'Trade licence number', vat:'Tax registration number (TRN)',
+    need:'legal business name, trade licence number and licensing authority, business address, contact email and phone, and TRN if you are VAT-registered.',
+    notes:d=>[RIGHTS(d)]},
+  sa:{law:'the Saudi E-Commerce Law', alt:'', addr:'Business address', reg:'Registered with', no:'Commercial registration (CR) number', vat:'VAT number',
+    need:'legal business name, commercial registration number, business address, contact email and phone, and VAT number.',
+    notes:d=>[RIGHTS(d)]},
+  my:{law:'the Consumer Protection (Electronic Trade Transactions) Regulations 2012', alt:'', addr:'Business address', reg:'Registered with', no:'SSM registration number', vat:'SST / tax number',
+    need:'legal business name, SSM registration number, business address, contact email and phone.',
+    notes:d=>[RIGHTS(d)]},
+  sg:{law:"Singapore's Consumer Protection (Fair Trading) Act 2003", alt:'', addr:'Business address', reg:'Registered with', no:'UEN', vat:'GST registration number',
+    need:'legal business name, UEN, business address, contact email and GST registration number if you are GST-registered.',
+    notes:d=>[RIGHTS(d)]},
+  za:{law:'section 43 of the South African Electronic Communications and Transactions Act 25 of 2002', alt:'', addr:'Physical address', reg:'Registered with', no:'Company registration number', vat:'VAT number',
+    need:'full legal name and legal status, physical address, phone and email, registration number, names of directors and VAT number.',
+    notes:d=>[`<p>Where the Consumer Protection Act 68 of 2008 applies, it gives you rights that this notice does not limit, including a cooling-off period for certain direct marketing sales.</p>`]},
+  intl:{law:null, alt:'', addr:'Business address', reg:'Registered in', no:'Registration number', vat:'Tax / VAT number',
+    need:'legal business name, business address, contact email, and your company registration and tax numbers if you have them.',
+    notes:d=>[RIGHTS(d)]}
+};
+function legalKey(country){ return LEGAL_KEY[country] || 'intl'; }
+function legalRegion(country, key){ return LEGAL_REGION[key] || LEGAL_REGION_BY_COUNTRY[country] || ''; }
+function legal(d){
+  const N = d.businessName, P = LEGAL[d.legalKey], C = d.countryThe;
+  const law = P.law || (d.legalKey==='eu' ? `Article 5 of the EU E-Commerce Directive (2000/31/EC) and the national law that applies it in ${C}` : d.legalKey==='eea' ? `the e-commerce and consumer rules that apply in ${C}` : '');
+  const intro = law
+    ? pick([`This Legal Notice gives the details required under ${law} about who runs this website.`,`Here is the legal information about this website and the business behind it, shown in line with ${law}.`])
+    : pick([`This Legal Notice tells you who runs this website and how to reach us. It works alongside our Terms &amp; Conditions and Privacy Policy.`,`Here is the legal information about this website and the business behind it. It sits alongside our Terms &amp; Conditions and Privacy Policy.`]);
+  const rows = [['Company name', d.legalName + (d.legalForm ? ' ('+d.legalForm+')' : '')]];
+  if(d.hasLegalName && d.legalName !== N) rows.push(['Trading as', N]);
+  if(d.hasAddr) rows.push([P.addr, d.address]);
+  if(d.rep) rows.push(['Represented by', d.rep]);
+  if(d.hasEmail) rows.push(['Email', emailLink(d)]);
+  if(d.hasPhone) rows.push(['Phone', d.phone]);
+  if(d.registry) rows.push([P.reg, d.registry]);
+  if(d.regNo) rows.push([P.no, d.regNo]);
+  if(d.capital) rows.push(['Share capital', d.capital]);
+  if(d.vatId) rows.push([P.vat, d.vatId]);
+  if(d.authority) rows.push([P.auth || 'Supervisory authority or licence', d.authority]);
+  if(d.grievance) rows.push(['Grievance officer', d.grievance]);
+  if(d.hosting) rows.push(['Website host', d.hosting]);
+  const region = legalRegion(d.countryRaw, d.legalKey);
+  const regionP = region && d.legalKey!=='eu' && d.legalKey!=='eea' && !['de','at','fr','it','es','nl','be','ie','pl'].includes(d.legalKey)
+    ? `<p>${N} is based in ${C} and serves customers in ${C}. We follow the consumer and e-commerce rules that apply in ${C} and across ${region}.</p>` : '';
+  return `<h1>Legal Notice</h1>
+<p>Last updated: ${d.today}</p>
+<p>${intro}${P.alt?' '+P.alt:''}</p>
+<h2>Who runs this website</h2>
+<p>${N} is an online store selling ${d.productsRaw}.</p>
+<p>${rows.map(([k,v])=>`<strong>${k}:</strong> ${v}`).join('<br>\n')}</p>
+${(P.content!==undefined ? d.contentResp : (d.contentExplicit ? d.contentResp : '')) ? `<h2>${d.legalKey==='fr'?'Publication director':'Responsible for content'}</h2>\n<p>${d.contentResp}${P.content||''}${d.hasAddr?', at the address above':''}.</p>` : ''}
+<h2>Information for customers in ${C}</h2>
+${regionP}
+${P.notes(d).filter(Boolean).join('\n')}
+<h2>Liability for our content</h2>
+<p>${pick([`We work hard to keep the information on this website accurate and up to date, but we can't promise it is always complete or free of mistakes.`,`We take care with the information we publish, but mistakes can happen, and we can't guarantee that everything is complete or current.`])} Nothing in this notice excludes or limits liability that cannot be excluded by law, such as liability for fraud or for death or personal injury caused by negligence.</p>
+<h2>Links to other websites</h2>
+<p>${pick([`Our website may link to websites run by other people. We don't control them and aren't responsible for what they contain or how they handle your data.`,`Some pages link to external websites. We have no control over those sites, so please check their own notices and policies.`])}</p>
+<h2>Copyright and trademarks</h2>
+<p>The text, images, logos and design on this website belong to ${d.legalName||N} or are used with permission. You're welcome to share a link to our pages, but please don't copy, resell or republish our content without written permission${d.hasEmail?' from '+emailLink(d):''}.</p>
+<h2>Governing law</h2>
+<p>This notice and any dispute about this website are governed by the laws of ${d.countryThe}. This does not affect any mandatory consumer rights you have in the country where you live.</p>`;
+}
+
+const BUILD = {about,contact,faq,shipping,privacy,refund,terms,payment,legal};
 
 // ================= UI =================
 // Standard closing block added to the end of every page
@@ -938,8 +1114,13 @@ function refreshReq(){
   el.className = 'req' + (n===need.length ? ' ok' : '');
   el.innerHTML = n===need.length ? '<b>All required details filled</b>' : '<b>'+n+' of '+need.length+'</b> required details filled';
 }
+function refreshLegalHint(){
+  const c = $('countries').value==='__custom' ? $('countries_in').value.trim() : $('countries').value;
+  const k = legalKey(c), P = LEGAL[k], el = $('legalNeeds');
+  el.textContent = c ? `Legal Notice for ${c} normally needs: ${P.need}` : 'Choose a country above and this shows what its Legal Notice normally needs. Leave a field empty and that line is left out.';
+}
 function refreshUI(){
-  refreshReq();
+  refreshReq(); refreshLegalHint();
   COMBO_IDS.forEach(id=>{ $(id+'_in').style.display = $(id+'_sel').value==='__custom' ? '' : 'none'; });
   $('currency_in').style.display = $('currency').value==='__custom' ? '' : 'none';
   // total delivery (auto)

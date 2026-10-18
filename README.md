@@ -15,8 +15,15 @@ A single-file HTML tool with two sections. Open `store-policy-generator.html` in
 6. Refund & Returns Policy
 7. Terms & Conditions
 8. Payment Policy
+9. Legal Notice
 
 Every page ends with the same "Contact us" block: business name, email, phone, hours with time zone, and address.
+
+### Legal Notice
+
+The Legal Notice is written for the business's selected country and its region. It names the law that applies (for example § 5 DDG in Germany, LCEN article 6-III in France, the Companies Act 2006 in the UK, the Australian Consumer Law, Japan's Act on Specified Commercial Transactions) and uses that country's own labels, such as "VAT ID (USt-IdNr.)", "SIREN / SIRET" or "ABN". Germany, Austria and Switzerland get an Impressum-style notice, and France gets the publication director and website host lines. Other countries get a plain legal notice with a regional paragraph.
+
+Fill in the **Legal details** section of the form (legal company name and form, registration number, VAT or tax ID, authorised representative, website host and so on). A hint under the heading lists what the chosen country normally needs. Empty fields are left out of the page instead of showing placeholders. The notice is a template based on the main rules for each country, so have it checked against the laws that apply to your business.
 
 ## Humanizer
 
@@ -112,6 +119,7 @@ The pages are written to include what Merchant Center reviewers look for, such a
 
 - **Unique wording:** each generation uses a fresh random seed, shuffles list order where order does not matter, and swaps common phrases, so two runs never read the same. Policy pages share a standard structure, so some similarity between stores is normal. Add a personal sentence or two, especially in About Us and the owner bio.
 - **Contact form:** the Contact Us page can mention a contact form, but the form itself is not generated. A pasted HTML form cannot send mail on either platform, so add it with Shopify's contact page template or a WordPress form plugin.
+- **Legal Notice:** details that are not required where you sell can be left empty. The EU online dispute resolution platform closed in July 2025, so the notice does not link to it.
 - **Countries:** pick "Other country" if yours is not on Google's list (for example Pakistan), type it in, and choose the currency.
 - **No returns:** choosing "No, I don't accept returns" hides both Refund Method and Refund Processing Time.
 - **Cash on Delivery:** if it is selected as a payment method, the refund wording explains that those orders are refunded by bank transfer and that the bank-details email comes only from your business email.
