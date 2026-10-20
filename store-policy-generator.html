@@ -388,7 +388,7 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
       <label for="pdUrl">Product page link</label>
       <div style="display:flex;gap:8px"><input id="pdUrl" type="url" placeholder="https://store.com/products/..."><button class="p" id="pdFetch" type="button" style="white-space:nowrap">Fetch product</button></div>
       <div class="hint">Works best with Shopify, WooCommerce and other store pages. Sites that block automated requests or load products with JavaScript (Amazon and AliExpress, for example) may not work. Use "From my own text" for those.</div>
-      <label class="chk" style="margin-top:12px;align-items:flex-start"><input type="checkbox" id="pdProxy" checked style="margin-top:3px"><span>Use a free public proxy when the site blocks direct access<br><small>The page address is sent to that service so it can load the page for you. Turn this off to fetch directly only.</small></span></label>
+      <label class="chk" style="margin-top:12px;align-items:flex-start"><input type="checkbox" id="pdProxy" checked style="margin-top:3px"><span>Use a free public proxy when the site blocks direct access<br><small>The page address is sent to a third-party service (r.jina.ai first) so it can load the page for you. Turn this off to fetch directly only.</small></span></label>
       <details style="margin-top:10px"><summary>Use your own proxy</summary>
         <label for="pdCustom">Proxy address <small>(put {url} where the page address goes)</small></label>
         <input id="pdCustom" placeholder="https://your-worker.example.workers.dev/?url={url}"></details>
@@ -2436,7 +2436,8 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
     var txt = function (el) { return el ? htmlToPlain(el.innerHTML) : ''; };
     out.site = meta('og:site_name');
     var h1 = doc.querySelector('h1');
-    out.title = (prod && prod.name) || meta('og:title') || (h1 ? h1.textContent.trim() : '') || (doc.title || '').trim();
+    var pt = doc.querySelector('#productTitle');
+    out.title = (prod && prod.name) || (pt ? pt.textContent.trim() : '') || meta('og:title') || (h1 ? h1.textContent.trim() : '') || (doc.title || '').replace(/^Amazon\.[a-z.]+\s*:\s*/i, '').replace(/\s+:\s+[^:]+$/, '').trim();
     out.title = htmlToPlain(out.title);
     if (!(prod && prod.name)) { // strip "| Store name" suffixes taken from page titles
       var parts = out.title.split(/\s+[|–—-]\s+/);
@@ -2449,14 +2450,17 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
       var el = doc.querySelector(sel); if (el) { var t = txt(el); if (t.length > 40) cands.push(t); }
     });
     var best = cands.filter(function (c) { return c.length >= 60; })[0] || cands.sort(function (a, b) { return b.length - a.length; })[0] || '';
-    out.description = best || meta('og:description') || meta('description');
+    var md = meta('og:description') || meta('description');
+    if (md && (/^Amazon\.[a-z.]+\s*:/i.test(md) || md.toLowerCase().indexOf(out.title.toLowerCase().slice(0, 30)) === 0)) md = '';
+    out.description = best || md;
     var lis = [];
     ['#feature-bullets li', '[itemprop="description"] li', '.product__description li', '.product-description li', '#tab-description li'].forEach(function (sel) {
-      Array.prototype.forEach.call(doc.querySelectorAll(sel), function (li) { var t = li.textContent.replace(/\s+/g, ' ').trim(); if (t.length > 4 && t.length < 300 && lis.indexOf(t) < 0 && out.description.indexOf(t) < 0) lis.push(t); });
+      Array.prototype.forEach.call(doc.querySelectorAll(sel), function (li) { var t = li.textContent.replace(/\s+/g, ' ').trim(); if (t.length > 4 && t.length < 400 && !/^(?:see more|make sure this fits)/i.test(t) && lis.indexOf(t) < 0 && out.description.indexOf(t) < 0) lis.push(t); });
     });
     out.bullets = lis.slice(0, 12);
     var b = prod && prod.brand;
     out.brand = (b && (typeof b === 'string' ? b : b.name)) || meta('product:brand') || meta('og:brand') || '';
+    if (!out.brand) { var by = doc.querySelector('#bylineInfo'); if (by) out.brand = by.textContent.replace(/\s+/g, ' ').replace(/^\s*(?:Visit the|Brand:)\s*/i, '').replace(/\s+Store\s*$/i, '').trim(); }
     if (!out.brand) { var bi = doc.querySelector('[itemprop="brand"]'); if (bi) out.brand = (bi.getAttribute('content') || bi.textContent || '').trim(); }
     out.brand = htmlToPlain(out.brand).slice(0, 60);
     return out;
@@ -2464,25 +2468,25 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
 
   // ---------- fetching ----------
   var PROXIES = [
+    function (u) { return { u: 'https://r.jina.ai/' + u, h: { 'X-Return-Format': 'html' } }; },
     function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
-    function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
     function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
   ];
-  function tryFetch(url, ms) {
+  function tryFetch(url, ms, headers) {
     var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(function () { ctl.abort(); }, ms) : null;
-    return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function (r) { if (timer) clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    return fetch(url, ctl ? { signal: ctl.signal, headers: headers || {} } : { headers: headers || {} }).then(function (r) { if (timer) clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
       .then(function (t) { if (t.length < 300 || !/<(?:html|body|head|title|script|meta)\b/i.test(t)) throw new Error('not a web page'); return t; });
   }
   function fetchPage(url, o) {
     var tries = [{ u: url, via: 'direct' }];
     if (o.custom) tries.push({ u: o.custom.replace('{url}', encodeURIComponent(url)), via: 'your proxy' });
-    if (o.proxy) PROXIES.forEach(function (p, i) { tries.push({ u: p(url), via: 'public proxy ' + (i + 1) }); });
+    if (o.proxy) PROXIES.forEach(function (p, i) { var x = p(url); tries.push({ u: x.u || x, h: x.h, via: 'public proxy ' + (i + 1) }); });
     var i = 0, last = '';
     return new Promise(function (resolve, reject) {
       (function next() {
         if (i >= tries.length) { reject(new Error(last || 'no route worked')); return; }
         var t = tries[i++];
-        tryFetch(t.u, 14000).then(function (html) { resolve({ html: html, via: t.via }); }, function (e) { last = e && e.message || 'failed'; next(); });
+        tryFetch(t.u, t.h ? 25000 : 14000, t.h).then(function (html) { resolve({ html: html, via: t.via }); }, function (e) { last = e && e.message || 'failed'; next(); });
       })();
     });
   }
@@ -2577,7 +2581,7 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
     var btn = g('pdFetch'); btn.disabled = true; btn.textContent = 'Fetching…'; g('pdFetchNote').textContent = '';
     fetchPage(u, { proxy: g('pdProxy').checked, custom: g('pdCustom').value.trim() }).then(function (r) {
       var p = extractProduct(r.html, u);
-      if (!p.title && !p.description) throw new Error('no product details found on that page');
+      if (/^(?:robot check|captcha|sorry|access denied|attention required|just a moment)/i.test(p.title) || (!p.title && !p.description)) throw new Error('the site showed a robot check instead of the product');
       fill(p, r.via); btn.disabled = false; btn.textContent = 'Fetch product';
       run();
     }).catch(function (e) {
