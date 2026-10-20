@@ -145,6 +145,7 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
     <nav class="nav" aria-label="Sections">
       <button type="button" class="on" data-view="policy">Policy Pages</button>
       <button type="button" data-view="humanizer">Humanizer</button>
+      <button type="button" data-view="product">Product Details</button>
     </nav>
   </div>
 </header>
@@ -374,6 +375,75 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
     <details id="hzHistWrap" style="margin-top:14px" hidden><summary>History</summary><div class="hist" id="hzHist"></div></details>
     <div id="hzPrevWrap" hidden><h2 style="margin-top:18px">Preview</h2><div class="hzprev" id="hzPreview"></div></div>
     <div class="hint" style="margin-top:12px">This rewrites with built-in writing rules in your browser, and nothing is sent anywhere. It makes text read more naturally, but it can't promise any particular result in an AI-detection tool, so read it through once and add your own details.</div>
+  </div>
+</div>
+<div class="wrap hz" id="view-product" hidden>
+  <div class="card">
+    <h2>Product source</h2>
+    <div class="modes" id="pdOpts" role="group" aria-label="Where the product text comes from">
+      <button type="button" class="on" data-opt="link" aria-pressed="true">From a product link</button>
+      <button type="button" data-opt="text" aria-pressed="false">From my own text</button>
+    </div>
+    <div id="pdLinkBox">
+      <label for="pdUrl">Product page link</label>
+      <div style="display:flex;gap:8px"><input id="pdUrl" type="url" placeholder="https://store.com/products/..."><button class="p" id="pdFetch" type="button" style="white-space:nowrap">Fetch product</button></div>
+      <div class="hint">Works best with Shopify, WooCommerce and other store pages. Sites that block automated requests or load products with JavaScript (Amazon and AliExpress, for example) may not work. Use "From my own text" for those.</div>
+      <label class="chk" style="margin-top:12px;align-items:flex-start"><input type="checkbox" id="pdProxy" checked style="margin-top:3px"><span>Use a free public proxy when the site blocks direct access<br><small>The page address is sent to that service so it can load the page for you. Turn this off to fetch directly only.</small></span></label>
+      <details style="margin-top:10px"><summary>Use your own proxy</summary>
+        <label for="pdCustom">Proxy address <small>(put {url} where the page address goes)</small></label>
+        <input id="pdCustom" placeholder="https://your-worker.example.workers.dev/?url={url}"></details>
+      <div class="hint" id="pdFetchNote" role="status"></div>
+      <details id="pdSrcDetails" style="margin-top:10px"><summary>Paste the page source instead</summary>
+        <textarea id="pdSource" placeholder="Open the product page, press Ctrl+U (or ⌘ + Option + U), copy everything and paste it here." style="min-height:110px"></textarea>
+        <div class="bar" style="margin-top:8px"><button type="button" id="pdUseSource">Read product from source</button></div></details>
+    </div>
+    <div id="pdSrcWrap" hidden>
+      <label for="pdTitle">Product title</label>
+      <input id="pdTitle" placeholder="Paste the original product title">
+      <label for="pdDesc">Product description</label>
+      <textarea id="pdDesc" style="min-height:200px" placeholder="Paste the original product description. Bullet points are fine."></textarea>
+    </div>
+
+    <h2 style="margin-top:22px">Rewrite settings</h2>
+    <label class="chk" style="margin-top:6px"><input type="checkbox" id="pdRemove" checked> Remove brand names</label>
+    <label for="pdBrands">Extra brand names to remove <small>(comma-separated)</small></label>
+    <textarea id="pdBrands" style="min-height:56px" placeholder="Your supplier's brand, the store name, a product line"></textarea>
+    <div class="hint">Well-known brands are removed automatically, and a fetched page adds its own brand and store name here. Check this list so real product words stay in.</div>
+    <div class="row">
+      <div><label for="pdLevel">Strength</label><select id="pdLevel"><option value="1">Light</option><option value="2" selected>Balanced</option><option value="3">Strong</option></select></div>
+      <div><label for="pdTone">Tone</label><select id="pdTone"><option value="professional">Professional</option><option value="friendly" selected>Friendly</option><option value="casual">Casual</option></select></div>
+    </div>
+    <div class="row">
+      <div><label for="pdVar">Word variety <small id="pdVarVal">30%</small></label><input type="range" id="pdVar" min="0" max="100" step="5" value="30"></div>
+      <div><label for="pdMax">Longest title <small>(characters, 0 = no limit)</small></label><input type="number" id="pdMax" min="0" max="500" value="150"></div>
+    </div>
+    <div class="bar">
+      <button class="p" id="pdGo" type="button">Rewrite product details</button>
+      <button id="pdAgain" type="button" title="Same text, different wording">Another version</button>
+      <button id="pdClear" type="button">Clear</button>
+    </div>
+    <div class="cardfoot"></div>
+  </div>
+
+  <div class="card">
+    <h2>Rewritten product details</h2>
+    <div class="empty" id="pdEmpty"><strong>Nothing yet</strong><p>Fetch a product link or paste a title and description, then select Rewrite product details.</p></div>
+    <div id="pdOutWrap" hidden>
+      <label for="pdOutTitle">Title</label>
+      <input id="pdOutTitle">
+      <label for="pdOutDesc">Description <small>(you can edit it before copying)</small></label>
+      <textarea id="pdOutDesc" style="min-height:280px;font-family:var(--serif);font-size:16px;line-height:1.65"></textarea>
+      <div class="chips" id="pdStats"></div>
+      <div class="bar" style="margin-top:12px">
+        <button id="pdCopyTitle" type="button">Copy title</button>
+        <button id="pdCopyDesc" type="button">Copy description</button>
+        <button id="pdCopyHtml" type="button">Copy as HTML</button>
+        <button id="pdCopyBoth" type="button">Copy both</button>
+        <button id="pdReuse" type="button">Use as source</button>
+      </div>
+      <div class="hint" style="margin-top:12px">Check the result against the real product. Sizes, materials and claims must stay accurate, and a brand removed from a title may still appear in an image or model number. If the source text came from another store, the rewrite is still based on it, so add your own details before you publish.</div>
+    </div>
+    <div class="cardfoot"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1918,26 +1988,29 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
   var note = function (m) { try { toast(m); } catch (e) {} };
   var SUBS = {
     policy: 'Fill in your business details and get human-sounding About, Contact, FAQ and policy pages that cover Google Merchant Center requirements.',
-    humanizer: 'Paste your own text and get a more natural, human-sounding rewrite. It runs in your browser and nothing is uploaded.'
+    humanizer: 'Paste your own text and get a more natural, human-sounding rewrite. It runs in your browser and nothing is uploaded.',
+    product: 'Fetch a product page, or paste your own title and description. Brand names come out and the text is rewritten in a human voice.'
   };
   var SAMPLE = "In today's fast-paced digital world, it is important to note that shopping online should be seamless. Furthermore, we utilize a robust system to ensure that your order is processed in a timely manner. Prior to shipping, our dedicated team will meticulously inspect each item.\n\nHowever, should you require any additional assistance, please do not hesitate to contact us at support@example.com. We are committed to providing a comprehensive range of products, and we strive to deliver them within 3-5 business days; this is a testament to our commitment to customer satisfaction.\n\nIn conclusion, we are pleased to serve you and look forward to your next order.";
 
   // ----- switching between the two sections -----
   function showView(v, remember) {
-    if (v !== 'humanizer') v = 'policy';
+    if (v !== 'humanizer' && v !== 'product') v = 'policy';
     g('view-policy').hidden = v !== 'policy';
     g('view-humanizer').hidden = v !== 'humanizer';
+    g('view-product').hidden = v !== 'product';
     Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) { b.classList.toggle('on', b.getAttribute('data-view') === v); });
     g('hdrSub').textContent = SUBS[v];
     if (remember) {
       try { localStorage.setItem('policyGenView', v); } catch (e) {}
-      try { history.replaceState(null, '', v === 'policy' ? location.pathname + location.search : '#humanizer'); } catch (e) {}
+      try { history.replaceState(null, '', v === 'policy' ? location.pathname + location.search : '#' + v); } catch (e) {}
     }
   }
   Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) { b.onclick = function () { showView(b.getAttribute('data-view'), true); }; });
   var startView = 'policy';
   try { startView = localStorage.getItem('policyGenView') || 'policy'; } catch (e) {}
   if (location.hash === '#humanizer') startView = 'humanizer';
+  if (location.hash === '#product') startView = 'product';
   showView(startView, false);
 
   // ----- helpers -----
@@ -2219,6 +2292,341 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
   }
   renderHist();
   CHK.concat(['hzLevel', 'hzTone', 'hzFormat']).forEach(function (i) { g(i).addEventListener('change', saveHz); });
+})();
+
+</script>
+<script>
+/* Product Details: fetch a product page (or take pasted text), remove brand names, rewrite in a human voice */
+(function () {
+  'use strict';
+  var g = function (id) { return document.getElementById(id); };
+  var note = function (m) { try { toast(m); } catch (e) {} };
+
+  // ---------- brand data ----------
+  // "?" marks names that are also ordinary words: they are only removed when they clearly act as a brand (®, ™, "by X", "X's") or when you list them yourself.
+  var BRAND_TXT = [
+    'Nike|Adidas|Puma?|Reebok|New Balance|Under Armour|Asics|Fila|Converse|Vans|Skechers|Crocs|Timberland|Dr. Martens|UGG|Levi\'s|Levis|Wrangler|Zara|H&M|Uniqlo|Gap?|Old Navy|Gucci|Prada|Chanel|Dior|Louis Vuitton|Versace|Giorgio Armani|Emporio Armani|Armani|Burberry|Balenciaga|Hermès|Hermes|Fendi|Valentino|Givenchy|Hugo Boss|Calvin Klein|Tommy Hilfiger|Polo Ralph Lauren|Ralph Lauren|Lacoste|Fred Perry|Diesel|Guess?|Michael Kors|Kate Spade|Coach?|Tory Burch|Fossil?|Casio|G-Shock|Seiko|Citizen?|Rolex|Omega?|Tissot|Timex|Swatch|Ray-Ban|Oakley|Gymshark|Lululemon|Champion?|The North Face|North Face|Patagonia|Columbia?|Carhartt|Dickies|Hanes|Fruit of the Loom|Victoria\'s Secret|Skims',
+    'Apple Watch|Apple Pencil|Apple iPhone|Apple iPad|Apple MacBook|Apple AirPods|Apple?|Samsung|Sony|LG|Huawei|Xiaomi|Oppo|Vivo|OnePlus|Realme|Motorola|Nokia|Google|Microsoft|Dell|HP|Lenovo|Asus|Acer|MSI|Razer|Logitech|Corsair|SteelSeries|HyperX|Anker|Belkin|Baseus|Ugreen|JBL|Bose|Beats|Sennheiser|Skullcandy|Marshall?|Harman Kardon|Canon|Nikon|DJI|Fujifilm|Panasonic|Philips|Sharp?|Toshiba|TCL|Hisense|Kodak|Garmin|Amazfit|Nintendo Switch|Nintendo|Sega|Intel|AMD|Nvidia|SanDisk|Kingston|Seagate|Western Digital|TP-Link|D-Link|Netgear',
+    'Dyson|Shark?|Bissell|iRobot|KitchenAid|Cuisinart|Instant Pot|Tefal|Braun|Black & Decker|Bosch|Makita|DeWalt|Stanley?|Milwaukee?|Kärcher|Karcher|IKEA|Pyrex|Lock & Lock|Yeti?|Hydro Flask|Nespresso|Keurig|Breville|Hamilton Beach|Oster|Vitamix|Weber?|Zojirushi',
+    'L\'Oréal|L\'Oreal|Maybelline|Revlon|Clinique|Estée Lauder|Estee Lauder|Lancôme|Lancome|Nivea|Dove?|Garnier|Neutrogena|Olay|Pantene|Head & Shoulders|Gillette|Oral-B|Colgate|Sephora|Fenty|Huda Beauty|NYX|Rare Beauty|CeraVe|La Roche-Posay|The Ordinary|Cetaphil|Vaseline|Old Spice|Dettol|Johnson\'s|Pampers|Huggies',
+    'Barbie|Hot Wheels|Fisher-Price|Mattel|Hasbro|Nerf|Play-Doh|Disney|Marvel|Pokémon|Pokemon|Funko|Peppa Pig|Paw Patrol|Minecraft|Fortnite|Hello Kitty|Sanrio|Spider-Man|Batman|Star Wars',
+    'Toyota|Honda|Ford?|BMW|Mercedes-Benz|Mercedes|Audi|Tesla|Volkswagen|Nissan|Hyundai|Kia?|Michelin|Bridgestone|Castrol',
+    'Amazon|Walmart|Target?|Costco|eBay|Etsy|AliExpress|Alibaba|Temu|Shein|Daraz|Noon?|Flipkart|Shopify|Best Buy|Wayfair|Home Depot',
+    'Coca-Cola|Pepsi|Nestlé|Nestle|Nescafé|Nescafe|Kellogg\'s|Oreo|Red Bull|Monster?|Starbucks|Lipton|Lay\'s|Pringles|Cadbury|Hershey\'s|Nutella|Heinz|Maggi|Knorr|3M|Gorilla?|Duracell|Energizer|Rayovac'
+  ].join('|');
+  // product lines that can be replaced by what they are
+  var GENERIC = { 'iphone': 'smartphone', 'ipad': 'tablet', 'ipod': 'music player', 'macbook': 'laptop', 'airpods': 'wireless earbuds', 'playstation': 'game console', 'ps5': 'game console', 'ps4': 'game console', 'xbox': 'game console',
+    'kindle': 'e-reader', 'gopro': 'action camera', 'fitbit': 'fitness tracker', 'lego': 'building brick', 'velcro': 'hook-and-loop', 'band-aid': 'adhesive bandage', 'tupperware': 'food container', 'thermos': 'insulated flask',
+    'post-it': 'sticky note', 'sharpie': 'permanent marker', 'roomba': 'robot vacuum', 'apple watch': 'smartwatch', 'apple iphone': 'smartphone', 'apple ipad': 'tablet', 'apple macbook': 'laptop', 'apple airpods': 'wireless earbuds', 'apple pencil': 'stylus', 'nintendo switch': 'game console' };
+  var BRAND_LIST = BRAND_TXT.split('|').concat(Object.keys(GENERIC).map(function (k) { return k; }));
+  var STOP_SITE = /^(shop|store|official|online|mart|the|www|my|home|buy|best|new|sale|co|inc|llc|ltd)$/i;
+  var DESC_FLUFF = /\b(?:free (?:shipping|delivery)|best[- ]seller|hot (?:sale|item)|new arrival|best price|on sale|limited time(?: offer)?|buy (?:now|online)|fast shipping|cod available|cash on delivery|100% (?:original|authentic|genuine))\b/gi;
+  var FLUFF = /\b(?:free (?:shipping|delivery)|best[- ]seller|hot (?:sale|item)|new arrival|(?:100% )?(?:original|authentic|genuine)(?: product)?|official(?: store)?|best price|on sale|limited time(?: offer)?|buy (?:now|online)|fast shipping|cod available|cash on delivery)\b/gi;
+
+  function reEsc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  var L = '\\p{L}\\p{N}';
+  function entryList(extra) {
+    var seen = {}, out = [];
+    BRAND_LIST.concat(extra || []).forEach(function (raw) {
+      var name = String(raw).trim(), amb = false, forced = (extra || []).indexOf(raw) > -1;
+      if (/\?$/.test(name) && !forced) { amb = true; name = name.slice(0, -1); } else if (/\?$/.test(name)) name = name.slice(0, -1);
+      if (name.length < 2) return;
+      var k = name.toLowerCase(); if (seen[k]) { if (!amb) seen[k].amb = false; return; }
+      seen[k] = { name: name, amb: amb, generic: GENERIC[k] || '' }; out.push(seen[k]);
+    });
+    out.sort(function (a, b) { return b.name.length - a.name.length; });
+    return out;
+  }
+  var VERB_AFTER = /^(?:has|have|is|was|are|offers?|brings?|presents?|makes?|made|created?s?|designed|designs?|uses?|features?|delivers?|provides?|combines?|builds?|built|knows?|believes?|puts?|crafted|crafts?|engineered|introduces?)\b/i;
+  var VERB_PLURAL = /^(?:have|are|offer|bring|present|make|create|design|use|feature|deliver|provide|combine|build|know|believe|put|craft|introduce)\b/i;
+  function aOrAn(next) { return /^(?:[aeiou]|hour|honest|heir)/i.test(next) && !/^(?:uni|use|usu|one|once|eu)/i.test(next) ? 'an' : 'a'; }
+
+  // remove brand names from a piece of text. Returns { text, removed: [names] }
+  function removeBrands(text, extra, opts) {
+    opts = opts || {};
+    var removed = {}, entries = entryList(extra);
+    var t = String(text);
+    entries.forEach(function (en) {
+      var body = reEsc(en.name).replace(/ /g, '\\s+');
+      var re = new RegExp('(?:(\\ba|\\ban)\\s+)?(?:(?:made |designed |brought to you |proudly made |powered )?by\\s+)?(?<![' + L + '])(' + body + ')(?:[\'’]s)?(?![' + L + '])', 'giu');
+      t = t.replace(re, function (m, art, name, off, str) {
+        var after = str.slice(off + m.length), before = str.slice(0, off);
+        var mark = /^\s*[™®℠]/.test(after);
+        var prefixed = /^(?:made |designed |brought to you |proudly made |powered )?by\s/i.test(m.replace(/^(?:an?\s+)/i, ''));
+        if (en.amb && !mark && !prefixed && !/['’]s$/i.test(m)) return m;     // ordinary word, leave it
+        removed[en.name] = true;
+        var atStart = !/\S/.test(before) || /[.!?]\s*$/.test(before);
+        if (en.generic) {
+          var nx = en.generic;
+          var res = (art ? aOrAn(nx) + ' ' : '') + nx;
+          return atStart ? res.charAt(0).toUpperCase() + res.slice(1) : res;
+        }
+        if (atStart && VERB_AFTER.test(after.replace(/^\s+/, ''))) return VERB_PLURAL.test(after.replace(/^\s+/, '')) ? 'The makers' : 'The maker';
+        if (prefixed && !/^\s*(?:[.,;:)\]]|$)/.test(after)) return art ? art + ' ' : (m.match(/^(?:made |designed |brought to you |proudly made |powered )?by\s/i) || [''])[0];
+        if (art) { var nw = (after.match(/^\s*([A-Za-z]+)/) || [0, ''])[1]; return nw ? aOrAn(nw) + ' ' : ''; }
+        return '';
+      });
+    });
+    t = t.replace(/\s*[™®℠©]\s*/g, function (m, off, str) { return /\S/.test(str.charAt(off - 1) || '') && /\S/.test(str.charAt(off + m.length) || '') ? ' ' : ''; });
+    t = tidyText(t);
+    return { text: t, removed: Object.keys(removed) };
+  }
+  function tidyText(t) {
+    return t.replace(/[ \t]{2,}/g, ' ')
+      .replace(/\(\s*\)|\[\s*\]/g, '')
+      .replace(/\s+([,.;:!?])/g, '$1')
+      .replace(/([,;:])\s*([,;:])/g, '$1')
+      .replace(/(^|\n)[ \t,;:|\-–—]+(?=[A-Za-z0-9])/g, '$1')
+      .replace(/\s+(?:by|from)\s*(?=[.,;:!?)]|$)/gi, '')
+      .replace(/(^|\n)(?:and|or|&)\s+/gi, '$1')
+      .replace(/(^|[.!?]\s+)([a-z])/g, function (m, a, b) { return a + b.toUpperCase(); })
+      .replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // ---------- titles ----------
+  var ACR = /^(?:USB|LED|HD|TV|UV|AC|DC|GPS|PC|SSD|RGB|LCD|USA|UK|UHD|HDMI|NFC|LTE|RAM|CPU|GPU|XL|XXL|XS|SPF|PVC|PU|ABS|BPA|DIY|3D|4K|8K|WIFI|OLED|QLED|AI)$/;
+  var SMALL = /^(?:a|an|and|as|at|but|by|for|in|of|on|or|the|to|with|vs)$/i;
+  function titleCase(s) {
+    return s.toLowerCase().replace(/[A-Za-z0-9][A-Za-z0-9'’]*/g, function (w, off) {
+      var u = w.toUpperCase();
+      if (ACR.test(u)) return u === 'WIFI' ? 'Wi-Fi' : u;
+      if (off > 0 && SMALL.test(w)) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    });
+  }
+  function cleanTitle(t, maxLen) {
+    t = String(t || '').replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+    t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '');
+    t = t.replace(FLUFF, ' ').replace(/\s*[|•]\s*/g, ' | ');
+    var segs = t.split(' | '), seen = {}, keep = [];
+    segs.forEach(function (s) { var k = s.toLowerCase().trim(); if (k && !seen[k]) { seen[k] = 1; keep.push(s.trim()); } });
+    t = keep.join(' - ');
+    t = t.replace(/\s+[–—]\s+/g, ' - ');
+    var letters = t.replace(/[^A-Za-z]/g, '');
+    if (letters.length > 6 && letters === letters.toUpperCase()) t = titleCase(t);
+    t = tidyText(t).replace(/\b([A-Za-z]{3,}) \1\b/gi, '$1').replace(/\s*-\s*(?:-\s*)+/g, ' - ').replace(/^[-\s,]+|[-\s,]+$/g, '').replace(/\s{2,}/g, ' ');
+    if (maxLen && t.length > maxLen) {
+      var cut = t.slice(0, maxLen), idx = Math.max(cut.lastIndexOf(' - '), cut.lastIndexOf(', '), cut.lastIndexOf(' '));
+      t = cut.slice(0, idx > maxLen * 0.6 ? idx : maxLen).replace(/[-,\s]+$/, '');
+    }
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
+  // ---------- reading a product page ----------
+  function htmlToPlain(h) {
+    h = String(h || '');
+    if (!/<[a-z!\/]/i.test(h)) return h.replace(/&nbsp;/g, ' ').trim();
+    var doc = new DOMParser().parseFromString('<div>' + h.replace(/<(script|style)[\s\S]*?<\/\1>/gi, '').replace(/<br\s*\/?>/gi, '\n').replace(/<li[^>]*>/gi, '\n• ').replace(/<\/(p|div|h[1-6]|ul|ol|tr)>/gi, '$&\n\n') + '</div>', 'text/html');
+    return doc.body.textContent.replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function extractProduct(html, pageUrl) {
+    var doc = new DOMParser().parseFromString(String(html), 'text/html');
+    var out = { title: '', description: '', bullets: [], brand: '', site: '', url: pageUrl || '' };
+    var prod = null;
+    function walk(n) {
+      if (Array.isArray(n)) { n.forEach(walk); return; }
+      if (n && typeof n === 'object') {
+        var t = n['@type'];
+        if (!prod && (t === 'Product' || t === 'ProductGroup' || (Array.isArray(t) && (t.indexOf('Product') > -1 || t.indexOf('ProductGroup') > -1)))) prod = n;
+        Object.keys(n).forEach(function (k) { if (n[k] && typeof n[k] === 'object') walk(n[k]); });
+      }
+    }
+    Array.prototype.forEach.call(doc.querySelectorAll('script[type="application/ld+json"]'), function (s) { try { walk(JSON.parse(s.textContent)); } catch (e) {} });
+    var meta = function (k) { var el = doc.querySelector('meta[property="' + k + '"],meta[name="' + k + '"]'); return el ? (el.getAttribute('content') || '').trim() : ''; };
+    var txt = function (el) { return el ? htmlToPlain(el.innerHTML) : ''; };
+    out.site = meta('og:site_name');
+    var h1 = doc.querySelector('h1');
+    out.title = (prod && prod.name) || meta('og:title') || (h1 ? h1.textContent.trim() : '') || (doc.title || '').trim();
+    out.title = htmlToPlain(out.title);
+    if (!(prod && prod.name)) { // strip "| Store name" suffixes taken from page titles
+      var parts = out.title.split(/\s+[|–—-]\s+/);
+      if (parts.length > 1 && out.site && parts[parts.length - 1].toLowerCase().indexOf(out.site.toLowerCase().slice(0, 8)) > -1) parts.pop();
+      out.title = parts.join(' - ');
+    }
+    var cands = [];
+    if (prod && prod.description) cands.push(htmlToPlain(prod.description));
+    ['[itemprop="description"]', '#productDescription', '.product__description', '.product-description', '.product-single__description', '#product-description', '.woocommerce-product-details__short-description', '#tab-description', '.rte', '[class*="product-description"]', '[class*="ProductDescription"]'].forEach(function (sel) {
+      var el = doc.querySelector(sel); if (el) { var t = txt(el); if (t.length > 40) cands.push(t); }
+    });
+    var best = cands.filter(function (c) { return c.length >= 60; })[0] || cands.sort(function (a, b) { return b.length - a.length; })[0] || '';
+    out.description = best || meta('og:description') || meta('description');
+    var lis = [];
+    ['#feature-bullets li', '[itemprop="description"] li', '.product__description li', '.product-description li', '#tab-description li'].forEach(function (sel) {
+      Array.prototype.forEach.call(doc.querySelectorAll(sel), function (li) { var t = li.textContent.replace(/\s+/g, ' ').trim(); if (t.length > 4 && t.length < 300 && lis.indexOf(t) < 0 && out.description.indexOf(t) < 0) lis.push(t); });
+    });
+    out.bullets = lis.slice(0, 12);
+    var b = prod && prod.brand;
+    out.brand = (b && (typeof b === 'string' ? b : b.name)) || meta('product:brand') || meta('og:brand') || '';
+    if (!out.brand) { var bi = doc.querySelector('[itemprop="brand"]'); if (bi) out.brand = (bi.getAttribute('content') || bi.textContent || '').trim(); }
+    out.brand = htmlToPlain(out.brand).slice(0, 60);
+    return out;
+  }
+
+  // ---------- fetching ----------
+  var PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://corsproxy.io/?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
+  ];
+  function tryFetch(url, ms) {
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, timer = ctl ? setTimeout(function () { ctl.abort(); }, ms) : null;
+    return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function (r) { if (timer) clearTimeout(timer); if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (t) { if (t.length < 300 || !/<(?:html|body|head|title|script|meta)\b/i.test(t)) throw new Error('not a web page'); return t; });
+  }
+  function fetchPage(url, o) {
+    var tries = [{ u: url, via: 'direct' }];
+    if (o.custom) tries.push({ u: o.custom.replace('{url}', encodeURIComponent(url)), via: 'your proxy' });
+    if (o.proxy) PROXIES.forEach(function (p, i) { tries.push({ u: p(url), via: 'public proxy ' + (i + 1) }); });
+    var i = 0, last = '';
+    return new Promise(function (resolve, reject) {
+      (function next() {
+        if (i >= tries.length) { reject(new Error(last || 'no route worked')); return; }
+        var t = tries[i++];
+        tryFetch(t.u, 14000).then(function (html) { resolve({ html: html, via: t.via }); }, function (e) { last = e && e.message || 'failed'; next(); });
+      })();
+    });
+  }
+  function validUrl(u) {
+    try { var x = new URL(u); return /^https?:$/.test(x.protocol) && x.hostname.indexOf('.') > 0 ? x.href : ''; } catch (e) { return ''; }
+  }
+
+  // ---------- the rewrite ----------
+  function splitList(s) { return String(s || '').split(/[,;\n]+/).map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 60); }
+  function seedOf(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h | 0; }
+  function rewrite(src, o) {
+    var extra = splitList(o.brands), removedAll = {};
+    var res = { title: '', description: '', removed: [], before: null, after: null };
+    var title = src.title || '', desc = src.description || '';
+    desc = desc.replace(/https?:\/\/\S+|www\.\S+/gi, '').replace(/\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g, '')
+      .replace(/^\s*(?:brand|manufacturer|made by|marque|vendor)\s*[:：-].*$/gim, '').replace(DESC_FLUFF, ' ');
+    if (o.remove) {
+      var a = removeBrands(title, extra); title = a.text; a.removed.forEach(function (n) { removedAll[n] = 1; });
+      var b = removeBrands(desc, extra); desc = b.text; b.removed.forEach(function (n) { removedAll[n] = 1; });
+    } else { desc = tidyText(desc); }
+    res.title = cleanTitle(title, o.maxTitle || 0);
+    var before = Humanizer.measure(desc);
+    var hopts = {
+      format: 'text', level: o.level, tone: o.tone, mode: 'standard', variety: o.variety, seed: o.seed,
+      words: true, filler: true, contractions: o.tone !== 'professional', punct: true, split: true, rhythm: true
+    };
+    var BUL = /^\s*[•*\-–]\s+/;
+    var hz = { text: '', after: before };
+    if (desc.trim()) {
+      var blocks = desc.split(/\n+/).filter(function (l) { return l.trim(); }), parts = [], para = [];
+      var flush = function () { if (para.length) { var h = Humanizer.humanize(para.join('\n\n'), hopts); hz = h; parts.push(h.text); para = []; } };
+      blocks.forEach(function (l, i) {
+        if (BUL.test(l)) {
+          flush();
+          var item = l.replace(BUL, '').trim(), o2 = {}; for (var k in hopts) o2[k] = hopts[k]; o2.seed = (o.seed || 0) + i + 1; o2.split = false; o2.rhythm = false;
+          var h2 = Humanizer.humanize(item, o2).text.replace(/\.$/, '');
+          parts.push('• ' + (h2 || item));
+        } else para.push(l);
+      });
+      flush();
+      var joined = ''; parts.forEach(function (x, i) { var b = x.charAt(0) === '•', pb = i && parts[i - 1].charAt(0) === '•'; joined += (i ? (b && pb ? '\n' : '\n\n') : '') + x; });
+      hz = { text: joined, after: hz.after };
+    }
+    var out = hz.text;
+    if (o.remove) { var c = removeBrands(out, extra); out = c.text; c.removed.forEach(function (n) { removedAll[n] = 1; }); }
+    res.description = out;
+    res.removed = Object.keys(removedAll);
+    res.before = before; res.after = hz.after || Humanizer.measure(out);
+    return res;
+  }
+
+  // ---------- page wiring ----------
+  var option = 'link', variant = 0, fetched = null;
+  function setOption(o) {
+    option = o;
+    Array.prototype.forEach.call(document.querySelectorAll('#pdOpts button'), function (b) { var on = b.getAttribute('data-opt') === o; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    g('pdLinkBox').hidden = o !== 'link';
+    g('pdSrcWrap').hidden = o === 'link' && !fetched && !g('pdTitle').value && !g('pdDesc').value;
+  }
+  function readOpts() {
+    return { brands: g('pdBrands').value, remove: g('pdRemove').checked, level: parseInt(g('pdLevel').value, 10), tone: g('pdTone').value, variety: parseInt(g('pdVar').value, 10) / 100, maxTitle: parseInt(g('pdMax').value, 10) || 0, seed: 0 };
+  }
+  function chip(txt) { var s = document.createElement('span'); s.className = 'chip'; s.textContent = txt; return s; }
+  function run() {
+    var title = g('pdTitle').value, desc = g('pdDesc').value;
+    if (!title.trim() && !desc.trim()) { note(option === 'link' ? 'Fetch a product link first, or type a title and description' : 'Add a title or description first'); return; }
+    var o = readOpts(); o.seed = seedOf(title + '|' + desc + '|' + o.level + o.tone) + variant * 7919;
+    var r;
+    try { r = rewrite({ title: title, description: desc }, o); } catch (e) { note('Sorry, that text could not be processed'); return; }
+    g('pdOutTitle').value = r.title; g('pdOutDesc').value = r.description;
+    var st = g('pdStats'); st.innerHTML = '';
+    st.appendChild(chip(r.removed.length ? 'Brand names removed: ' + r.removed.join(', ') : 'No brand names found'));
+    st.appendChild(chip('Title ' + r.title.length + ' characters' + (r.title.length > 150 ? ' (Google allows 150)' : '')));
+    if (r.before.words) st.appendChild(chip(r.before.words + ' → ' + r.after.words + ' words'));
+    if (r.before.score !== null && r.after.score !== null && r.before.score !== undefined) st.appendChild(chip('Human-style score ' + r.before.score + ' → ' + r.after.score));
+    g('pdOutWrap').hidden = false; g('pdEmpty').hidden = true;
+    save();
+  }
+  function fill(p, via) {
+    fetched = p;
+    g('pdTitle').value = p.title; g('pdDesc').value = [p.description].concat(p.bullets.length ? [p.bullets.map(function (b) { return '• ' + b; }).join('\n')] : []).filter(Boolean).join('\n\n');
+    var add = [p.brand, p.site].filter(function (x) { return x && x.length > 2 && !STOP_SITE.test(x); });
+    var cur = splitList(g('pdBrands').value);
+    add.forEach(function (x) { if (!cur.some(function (c) { return c.toLowerCase() === x.toLowerCase(); })) cur.push(x); });
+    g('pdBrands').value = cur.join(', ');
+    g('pdFetchNote').textContent = 'Read from ' + (function () { try { return new URL(p.url).hostname; } catch (e) { return 'the page'; } })() + (via ? ' (' + via + ')' : '') + '. Check the text below, then rewrite it.';
+    g('pdSrcWrap').hidden = false;
+  }
+  function doFetch() {
+    var u = validUrl(g('pdUrl').value.trim());
+    if (!u) { note('Enter a full product link, starting with https://'); return; }
+    var btn = g('pdFetch'); btn.disabled = true; btn.textContent = 'Fetching…'; g('pdFetchNote').textContent = '';
+    fetchPage(u, { proxy: g('pdProxy').checked, custom: g('pdCustom').value.trim() }).then(function (r) {
+      var p = extractProduct(r.html, u);
+      if (!p.title && !p.description) throw new Error('no product details found on that page');
+      fill(p, r.via); btn.disabled = false; btn.textContent = 'Fetch product';
+      run();
+    }).catch(function (e) {
+      btn.disabled = false; btn.textContent = 'Fetch product';
+      g('pdSrcWrap').hidden = false;
+      g('pdFetchNote').textContent = 'Could not read that page (' + (e && e.message || 'blocked') + '). Many sites block automated requests. Paste the page source below, or switch to "From my own text" and paste the title and description.';
+      g('pdSrcDetails').open = true;
+    });
+  }
+  function fromSource() {
+    var h = g('pdSource').value;
+    if (h.trim().length < 50) { note('Paste the page source first'); return; }
+    var p = extractProduct(h, g('pdUrl').value.trim());
+    if (!p.title && !p.description) { note('No product details found in that source'); return; }
+    fill(p, 'pasted source'); run();
+  }
+  function toHtml(desc) {
+    var blocks = desc.split(/\n{2,}/), out = [];
+    function e(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    blocks.forEach(function (b) {
+      var lines = b.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
+      if (!lines.length) return;
+      if (lines.every(function (l) { return /^[•\-*]\s+/.test(l); })) out.push('<ul>' + lines.map(function (l) { return '<li>' + e(l.replace(/^[•\-*]\s+/, '')) + '</li>'; }).join('') + '</ul>');
+      else out.push('<p>' + lines.map(e).join('<br>') + '</p>');
+    });
+    return out.join('\n');
+  }
+  var KEY = 'policyGenPD1';
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ o: option, brands: g('pdBrands').value, remove: g('pdRemove').checked, level: g('pdLevel').value, tone: g('pdTone').value, v: g('pdVar').value, max: g('pdMax').value, proxy: g('pdProxy').checked, custom: g('pdCustom').value })); } catch (e) {} }
+  function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return; g('pdBrands').value = o.brands || ''; g('pdRemove').checked = o.remove !== false; g('pdLevel').value = o.level || '2'; g('pdTone').value = o.tone || 'friendly'; g('pdVar').value = o.v || '30'; g('pdMax').value = o.max || '150'; g('pdProxy').checked = o.proxy !== false; g('pdCustom').value = o.custom || ''; setOption(o.o || 'link'); } catch (e) {} }
+  if (g('view-product')) {
+    Array.prototype.forEach.call(document.querySelectorAll('#pdOpts button'), function (b) { b.onclick = function () { setOption(b.getAttribute('data-opt')); save(); }; });
+    g('pdVar').addEventListener('input', function () { g('pdVarVal').textContent = g('pdVar').value + '%'; });
+    g('pdFetch').onclick = doFetch;
+    g('pdUrl').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); doFetch(); } });
+    g('pdUseSource').onclick = fromSource;
+    g('pdGo').onclick = function () { variant = 0; run(); };
+    g('pdAgain').onclick = function () { variant++; run(); };
+    g('pdClear').onclick = function () { ['pdUrl', 'pdTitle', 'pdDesc', 'pdSource', 'pdOutTitle', 'pdOutDesc'].forEach(function (i) { g(i).value = ''; }); g('pdStats').innerHTML = ''; g('pdOutWrap').hidden = true; g('pdEmpty').hidden = false; fetched = null; g('pdSrcWrap').hidden = option === 'link'; g('pdFetchNote').textContent = ''; variant = 0; };
+    g('pdCopyTitle').onclick = function () { copy(g('pdOutTitle').value, 'Title copied'); };
+    g('pdCopyDesc').onclick = function () { copy(g('pdOutDesc').value, 'Description copied'); };
+    g('pdCopyHtml').onclick = function () { copy(toHtml(g('pdOutDesc').value), 'HTML copied'); };
+    g('pdCopyBoth').onclick = function () { copy(g('pdOutTitle').value + '\n\n' + g('pdOutDesc').value, 'Title and description copied'); };
+    g('pdReuse').onclick = function () { g('pdTitle').value = g('pdOutTitle').value; g('pdDesc').value = g('pdOutDesc').value; setOption('text'); g('pdSrcWrap').hidden = false; note('Moved to the source boxes'); };
+    ['pdLevel', 'pdTone', 'pdRemove', 'pdProxy', 'pdMax', 'pdBrands', 'pdCustom'].forEach(function (i) { g(i).addEventListener('change', save); });
+    g('pdVar').addEventListener('change', save);
+    load(); g('pdVarVal').textContent = g('pdVar').value + '%';
+  }
+  window.ProductDetails = { extractProduct: extractProduct, removeBrands: removeBrands, cleanTitle: cleanTitle, rewrite: rewrite, fetchPage: fetchPage, toHtml: toHtml, validUrl: validUrl };
 })();
 
 </script>

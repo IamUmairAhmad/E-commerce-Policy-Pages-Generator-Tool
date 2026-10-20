@@ -1,9 +1,10 @@
 # E-commerce Policy Pages Generator Tool
 
-A single-file HTML tool with two sections. Open `store-policy-generator.html` in any browser. No install, no server and no internet connection are needed.
+A single-file HTML tool with three sections. Open `store-policy-generator.html` in any browser. No install and no server are needed; only fetching a product link needs internet.
 
 - **Policy Pages:** writes the store pages Google Merchant Center expects, in a natural, human-sounding tone, from a short form.
 - **Humanizer:** paste your own text and get a more natural, human-sounding rewrite. See [Humanizer](#humanizer).
+- **Product Details:** fetch a product page (or paste a title and description) and get a rewritten, brand-free product title and description. See [Product Details](#product-details).
 
 ## Pages it generates
 
@@ -56,6 +57,21 @@ Controls and tools:
 The human-style score is this tool's own reading check (template phrases, sentence-length variety, contractions, repeated openers). It is not an AI-detector result.
 
 It uses built-in writing rules that run in your browser. Nothing is uploaded, and no AI service is involved. It makes text read more naturally, but it cannot promise any particular result in an AI-detection tool, so read the result once and add your own details. There is no "expand" or free-form "custom instruction" mode, because those need a language model.
+
+## Product Details
+
+Two ways to start:
+
+1. **From a product link.** Paste a product page URL and click **Fetch**. The title, description and bullet points are read from the page (structured product data first, then page tags).
+2. **From my own text.** Type or paste a title and description.
+
+Then **Rewrite product details**. The text goes through the Humanizer rules, brand names are removed from the title and description (known brands, the fetched page's own brand and store name, and any names you add), and the title is cleaned (shouting caps, "Free Shipping" style filler and repeated words removed, optional length limit). Copy the title, the description, HTML, or both.
+
+Limits to know about:
+
+- Browsers block reading other websites directly. If a direct fetch fails, the tool can retry through public CORS proxies (a tick box, on by default). The page address then passes through that third-party service. Untick it, or enter your own proxy URL with `{url}` in it, if that matters. Sites that block automated requests (Amazon and AliExpress often do) will fail: use "From my own text", or paste the page source.
+- Product names such as "iPhone" become generic words ("smartphone"). Names that are also ordinary words (Apple, Gap) are only removed with a ®/™ mark, "by X", a possessive, or when you list them yourself. Check the "Extra brand names" box.
+- Check the result against the real product. A rewrite of another store's text is still based on it, so add your own details.
 
 ## How to use the Policy Pages section
 
