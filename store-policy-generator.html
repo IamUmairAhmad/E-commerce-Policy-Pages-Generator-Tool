@@ -393,9 +393,9 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
         <label for="pdCustom">Proxy address <small>(put {url} where the page address goes)</small></label>
         <input id="pdCustom" placeholder="https://your-worker.example.workers.dev/?url={url}"></details>
       <div class="hint" id="pdFetchNote" role="status"></div>
-      <details id="pdSrcDetails" style="margin-top:10px"><summary>Paste the page source instead</summary>
-        <textarea id="pdSource" placeholder="Open the product page, press Ctrl+U (or ⌘ + Option + U), copy everything and paste it here." style="min-height:110px"></textarea>
-        <div class="bar" style="margin-top:8px"><button type="button" id="pdUseSource">Read product from source</button></div></details>
+      <details id="pdSrcDetails" style="margin-top:10px"><summary>Paste the page text or source instead</summary>
+        <textarea id="pdSource" placeholder="Easiest: open the product page, select all (Ctrl+A), copy and paste here. The first line is used as the title. Or paste the page source (Ctrl+U)." style="min-height:110px"></textarea>
+        <div class="bar" style="margin-top:8px"><button type="button" id="pdUseSource">Read product</button></div></details>
     </div>
     <div id="pdSrcWrap" hidden>
       <label for="pdTitle">Product title</label>
@@ -2590,7 +2590,12 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
   function fromSource() {
     var h = g('pdSource').value;
     if (h.trim().length < 50) { note('Paste the page source first'); return; }
-    var p = extractProduct(h, g('pdUrl').value.trim());
+    var p;
+    if (!/<(?:html|head|body|script|div|meta|h1|p|ul|li)\b[^>]*>/i.test(h)) {          // plain text copied from the page
+      var lines = h.split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+      var ti = 0; for (var i = 0; i < Math.min(lines.length, 6); i++) { if (lines[i].length > 15 && lines[i].length < 300) { ti = i; break; } }
+      p = { title: lines[ti] || '', description: lines.slice(ti + 1).join('\n'), bullets: [], brand: '', site: '' };
+    } else p = extractProduct(h, g('pdUrl').value.trim());
     if (!p.title && !p.description) { note('No product details found in that source'); return; }
     fill(p, 'pasted source'); run();
   }

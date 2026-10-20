@@ -69,7 +69,7 @@ Then **Rewrite product details**. The text goes through the Humanizer rules, bra
 
 Limits to know about:
 
-- Browsers block reading other websites directly. If a direct fetch fails, the tool can retry through public CORS proxies (a tick box, on by default). The page address then passes through that third-party service. Untick it, or enter your own proxy URL with `{url}` in it, if that matters. Sites that block automated requests (Amazon and AliExpress often do) will fail: use "From my own text", or paste the page source.
+- Browsers block reading other websites directly. If a direct fetch fails, the tool can retry through public CORS proxies (a tick box, on by default). The page address then passes through that third-party service. Untick it, or enter your own proxy URL with `{url}` in it, if that matters. Sites that block automated requests (Amazon, AliExpress and Alibaba often do) will fail: open the page, select all, copy, and paste it into "Paste the page text or source instead" (the first line becomes the title), or use "From my own text".
 - Product names such as "iPhone" become generic words ("smartphone"). Names that are also ordinary words (Apple, Gap) are only removed with a ®/™ mark, "by X", a possessive, or when you list them yourself. Check the "Extra brand names" box.
 - Check the result against the real product. A rewrite of another store's text is still based on it, so add your own details.
 
