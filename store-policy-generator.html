@@ -417,6 +417,7 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
       <div><label for="pdVar">Word variety <small id="pdVarVal">30%</small></label><input type="range" id="pdVar" min="0" max="100" step="5" value="30"></div>
       <div><label for="pdMax">Longest title <small>(characters, 0 = no limit)</small></label><input type="number" id="pdMax" min="0" max="500" value="150"></div>
     </div>
+    <div class="row" style="grid-template-columns:1fr"><div><label for="pdFormat">Output format</label><select id="pdFormat"><option value="listing" selected>Full listing: intro, key features, details</option><option value="plain">Plain rewrite only</option></select></div></div>
     <div class="bar">
       <button class="p" id="pdGo" type="button">Rewrite product details</button>
       <button id="pdAgain" type="button" title="Same text, different wording">Another version</button>
@@ -432,7 +433,7 @@ input[type=range]{padding:0;height:26px;accent-color:var(--acc);border:0;box-sha
       <label for="pdOutTitle">Title</label>
       <input id="pdOutTitle">
       <label for="pdOutDesc">Description <small>(you can edit it before copying)</small></label>
-      <textarea id="pdOutDesc" style="min-height:280px;font-family:var(--serif);font-size:16px;line-height:1.65"></textarea>
+      <textarea id="pdOutDesc" style="min-height:420px;font-family:var(--serif);font-size:16px;line-height:1.65"></textarea>
       <div class="chips" id="pdStats"></div>
       <div class="bar" style="margin-top:12px">
         <button id="pdCopyTitle" type="button">Copy title</button>
@@ -2538,6 +2539,87 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
     return res;
   }
 
+
+  // ---------- structured listing: intro, key features, why you'll love it, product details ----------
+  var HEADS = ['Key Features and Benefits', "Why You'll Love It", 'Product Details'];
+  var MATERIALS = /\b(stainless steel|aluminum|aluminium|silicone|bamboo|wood(?:en)?|cotton|polyester|nylon|leather|genuine leather|plastic|abs plastic|glass|ceramic|rubber|steel|metal|brass|copper|linen|wool|microfiber|tpu|pvc|zinc alloy|carbon fiber|stoneware|acrylic|paper|canvas)\b/ig;
+  function titleCaseWords(t) { return t.replace(/\b([a-z])([a-z']*)/g, function (m, a, b, off, str) { var w = a + b; return SMALL.test(w) && off > 0 ? w : a.toUpperCase() + b; }); }
+  function sentences(t) { return (t.replace(/\s+/g, ' ').match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || []).map(function (x) { return x.trim(); }).filter(Boolean); }
+  var LABELS = [[/waterproof|water[- ]resistant|weather/i, 'Water and Weather Resistance'], [/stainless|durab|sturdy|rugged|heavy[- ]duty|built to last|long[- ]lasting/i, 'Durable Construction'], [/clean|rinse|wash|dishwasher|wipe/i, 'Easy to Clean'], [/compact|store|storage|drawer|portable|fold|travel/i, 'Compact and Easy to Store'], [/install|set ?up|assembl|mount/i, 'Easy to Set Up'], [/lightweight|light weight/i, 'Lightweight Design'], [/battery|rechargeable|usb|charg/i, 'Convenient Power'], [/fits|compatible|suitable|works with/i, 'Compatible Fit'], [/great for|ideal for|perfect for|use for|used for|gift|everyday/i, 'Versatile Everyday Use'], [/comfort|soft|cushion/i, 'Comfortable Design'], [/seeds?|core|slice|cut|chop|peel/i, 'Practical Preparation Tool'], [/design|style|look/i, 'Thoughtful Design']];
+  function splitFeature(rawLabel, body) {
+    var label = rawLabel;
+    if (!label) {
+      for (var i = 0; i < LABELS.length; i++) if (LABELS[i][0].test(body)) { label = LABELS[i][1]; break; }
+      if (!label) label = body.split(/\s+/).filter(function (w) { return !SMALL.test(w) && w.length > 2; }).slice(0, 3).join(' ') || 'Key Feature';
+    }
+    label = titleCaseWords(label.replace(/[.!:]+$/, '').trim());
+    body = body.trim(); body = body.charAt(0).toUpperCase() + body.slice(1);
+    if (!/[.!?]$/.test(body)) body += '.';
+    return { label: label, body: body };
+  }
+  function cleanBody(t, extra, o, seedAdd) {
+    var x = removeBrands(t, extra).text;
+    var o2 = { format: 'text', level: o.level, tone: o.tone, mode: 'standard', variety: o.variety, seed: (o.seed || 0) + seedAdd, words: true, filler: true, contractions: o.tone !== 'professional', punct: true, split: false, rhythm: false };
+    var h = Humanizer.humanize(x, o2).text;
+    return removeBrands(h, extra).text.replace(/\.$/, '');
+  }
+  function detailLines(title, text) {
+    var lines = [], mats = {}, mm;
+    var pt = title.replace(/\s*[,(-].*$/, '').trim() || title;
+    lines.push('Product Type: ' + pt);
+    MATERIALS.lastIndex = 0;
+    while ((mm = MATERIALS.exec(text + ' ' + title))) mats[mm[1].toLowerCase()] = 1;
+    var mk = Object.keys(mats); if (mk.length) lines.push('Material: ' + titleCaseWords(mk.slice(0, 3).join(', ')));
+    var dim = (text + ' ' + title).match(/\b\d+(?:\.\d+)?\s?(?:x|×)\s?\d+(?:\.\d+)?(?:\s?(?:x|×)\s?\d+(?:\.\d+)?)?\s?(?:inch(?:es)?|in|cm|mm|ft|m)\b/i) || (text + ' ' + title).match(/\b\d+(?:\.\d+)?[-\s]?(?:inch(?:es)?|cm|mm|ft|oz|ml|l|liters?|lbs?|kg|g|w|watts?|v|mah)\b/i);
+    if (dim) lines.push((/x|×/i.test(dim[0]) ? 'Dimensions: ' : 'Key Spec: ') + dim[0]);
+    var col = title.match(/(?:,|-)\s*((?:Black|White|Silver|Gold|Grey|Gray|Blue|Red|Green|Pink|Purple|Brown|Beige|Rose Gold|Navy|Orange|Yellow|Clear)(?:\s+[A-Za-z]+)?)\s*$/i);
+    if (col) lines.push('Color: ' + titleCaseWords(col[1]));
+    return lines;
+  }
+  function listing(src, o) {
+    var extra = splitList(o.brands), res = { title: '', description: '', removed: [], before: null, after: null, structured: true };
+    var removedAll = {};
+    var tt = src.title || ''; if (o.remove) { var ta = removeBrands(tt, extra); tt = ta.text; ta.removed.forEach(function (n) { removedAll[n] = 1; }); }
+    res.title = cleanTitle(tt, o.maxTitle || 0);
+    var lines = String(src.description || '').replace(/https?:\/\/\S+|www\.\S+/gi, '').replace(/\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g, '')
+      .replace(/^\s*(?:brand|manufacturer|made by|marque|vendor)\s*[:：-].*$/gim, '').replace(DESC_FLUFF, ' ').split(/\n+/).map(function (x) { return x.trim(); }).filter(Boolean);
+    var paraSrc = [], feats = [], BUL = /^[•*\-–]\s+/;
+    lines.forEach(function (l) {
+      if (BUL.test(l)) {
+        var b = l.replace(BUL, ''), m = b.match(/^(.{3,60}?)\s*(?:[–—:]|\s-\s)\s*(.{12,})$/);
+        if (m && m[1].split(/\s+/).length <= 8) feats.push({ label: m[1], body: m[2] }); else feats.push({ label: '', body: b });
+      } else paraSrc.push(l);
+    });
+    var beforeText = lines.join(' '), i;
+    var paras = [];
+    if (paraSrc.length) {
+      var all = paraSrc.join(' ');
+      if (o.remove) { var pa = removeBrands(all, extra); all = pa.text; pa.removed.forEach(function (n) { removedAll[n] = 1; }); }
+      var hz = Humanizer.humanize(all, { format: 'text', level: o.level, tone: o.tone, mode: 'standard', variety: o.variety, seed: o.seed, words: true, filler: true, contractions: o.tone !== 'professional', punct: true, split: true, rhythm: true }).text;
+      if (o.remove) hz = removeBrands(hz, extra).text;
+      var sx = sentences(hz);
+      if (!feats.length && sx.length > 3) { sx.slice(3, 11).forEach(function (x) { feats.push({ label: '', body: x }); }); paras = [sx.slice(0, 3).join(' ')]; }
+      else paras = hz.split(/\n+/).filter(Boolean);
+    }
+    var fl = feats.slice(0, 8).map(function (f, k) {
+      var lab = f.label, body = f.body;
+      if (o.remove) { var la = removeBrands(lab, extra), ba = removeBrands(body, extra); la.removed.concat(ba.removed).forEach(function (n) { removedAll[n] = 1; }); lab = la.text; body = ba.text; }
+      return splitFeature(lab, cleanBody(body, o.remove ? extra : [], o, k + 1));
+    });
+    var kind = res.title.replace(/\s*[,(]\s*.*$/, '').replace(/\s+-\s+.*$/, '').trim() || res.title;
+    var intro = paras.length ? paras[0] : (fl.length ? 'Here is a closer look at the ' + kind + '. ' + fl[0].body : '');
+    var why = paras.length > 1 ? paras.slice(1).join(' ') : (fl.length >= 3 ? 'From ' + fl[0].label.toLowerCase() + ' to ' + fl[fl.length - 1].label.toLowerCase() + ', this ' + kind.toLowerCase() + ' brings its main features together in one practical product.' : '');
+    var out = [intro];
+    if (fl.length >= 2) { out.push(HEADS[0]); fl.forEach(function (f) { out.push(f.label + ': ' + f.body); }); }
+    if (why) { out.push(HEADS[1]); out.push(why); }
+    out.push(HEADS[2]); detailLines(res.title, paraSrc.join(' ') + ' ' + feats.map(function (f) { return f.label + ' ' + f.body; }).join(' ')).forEach(function (l) { out.push(l); });
+    out.push('A practical choice for everyday use: ' + kind + '.');
+    res.description = out.filter(Boolean).join('\n\n');
+    res.removed = Object.keys(removedAll);
+    res.before = Humanizer.measure(beforeText); res.after = Humanizer.measure(res.description);
+    return res;
+  }
+
   // ---------- page wiring ----------
   var option = 'link', variant = 0, fetched = null;
   function setOption(o) {
@@ -2555,7 +2637,7 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
     if (!title.trim() && !desc.trim()) { note(option === 'link' ? 'Fetch a product link first, or type a title and description' : 'Add a title or description first'); return; }
     var o = readOpts(); o.seed = seedOf(title + '|' + desc + '|' + o.level + o.tone) + variant * 7919;
     var r;
-    try { r = rewrite({ title: title, description: desc }, o); } catch (e) { note('Sorry, that text could not be processed'); return; }
+    try { r = (g('pdFormat').value === 'plain' ? rewrite : listing)({ title: title, description: desc }, o); } catch (e) { note('Sorry, that text could not be processed'); return; }
     g('pdOutTitle').value = r.title; g('pdOutDesc').value = r.description;
     var st = g('pdStats'); st.innerHTML = '';
     st.appendChild(chip(r.removed.length ? 'Brand names removed: ' + r.removed.join(', ') : 'No brand names found'));
@@ -2609,6 +2691,8 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
     blocks.forEach(function (b) {
       var lines = b.split('\n').map(function (x) { return x.trim(); }).filter(Boolean);
       if (!lines.length) return;
+      if (lines.length === 1 && HEADS.indexOf(lines[0]) > -1) { out.push('<h3>' + e(lines[0]) + '</h3>'); return; }
+      if (lines.length === 1 && /^[A-Z][\w &'\/-]{2,40}:\s\S/.test(lines[0])) { var ix = lines[0].indexOf(':'); out.push('<p><strong>' + e(lines[0].slice(0, ix + 1)) + '</strong>' + e(lines[0].slice(ix + 1)) + '</p>'); return; }
       if (lines.every(function (l) { return /^[•\-*]\s+/.test(l); })) out.push('<ul>' + lines.map(function (l) { return '<li>' + e(l.replace(/^[•\-*]\s+/, '')) + '</li>'; }).join('') + '</ul>');
       else out.push('<p>' + lines.map(e).join('<br>') + '</p>');
     });
@@ -2635,7 +2719,7 @@ root.Humanizer = { humanize: humanize, measure: measure, synonyms: synonyms, _ru
     g('pdVar').addEventListener('change', save);
     load(); g('pdVarVal').textContent = g('pdVar').value + '%';
   }
-  window.ProductDetails = { extractProduct: extractProduct, removeBrands: removeBrands, cleanTitle: cleanTitle, rewrite: rewrite, fetchPage: fetchPage, toHtml: toHtml, validUrl: validUrl };
+  window.ProductDetails = { listing: listing, extractProduct: extractProduct, removeBrands: removeBrands, cleanTitle: cleanTitle, rewrite: rewrite, fetchPage: fetchPage, toHtml: toHtml, validUrl: validUrl };
 })();
 
 </script>

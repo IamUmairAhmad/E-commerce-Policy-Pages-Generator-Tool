@@ -65,7 +65,7 @@ Two ways to start:
 1. **From a product link.** Paste a product page URL and click **Fetch**. The title, description and bullet points are read from the page (structured product data first, then page tags).
 2. **From my own text.** Type or paste a title and description.
 
-Then **Rewrite product details**. The text goes through the Humanizer rules, brand names are removed from the title and description (known brands, the fetched page's own brand and store name, and any names you add), and the title is cleaned (shouting caps, "Free Shipping" style filler and repeated words removed, optional length limit). Copy the title, the description, HTML, or both.
+Then **Rewrite product details**. The default output is a **full listing**: a clean title, an intro, *Key Features and Benefits* ("Label: sentence" lines), *Why You'll Love It*, and *Product Details* (product type, material, size, colour, only where the source text supports them). Choose "Plain rewrite only" for just the rewritten text. Features come from the page's bullet points; if the source has none, the sentences after the first three are used. Check the details lines against the real product. The text goes through the Humanizer rules, brand names are removed from the title and description (known brands, the fetched page's own brand and store name, and any names you add), and the title is cleaned (shouting caps, "Free Shipping" style filler and repeated words removed, optional length limit). Copy the title, the description, HTML, or both.
 
 Limits to know about:
 
